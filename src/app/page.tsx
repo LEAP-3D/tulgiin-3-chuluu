@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 
 const Home = () => {
-  return <>hello fssrom sdaheome</>;
+  return <>hello  sdaheome</>;
 };
 
 export default Home;
