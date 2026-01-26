@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 export async function GET() {
   return NextResponse.json({
     method: "GET",
-    message: "Hello articles",
+    message: "Hello articles Test 606666!",
   });
 }
 
