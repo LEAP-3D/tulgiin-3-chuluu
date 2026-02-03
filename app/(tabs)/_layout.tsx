@@ -1,8 +1,6 @@
 import { Tabs } from "expo-router";
 import { View } from "react-native";
-
 import { HapticTab } from "@/components/haptic-tab";
-
 import { UilcilgeeIcon } from "@/components/icons/uilcilgee";
 import { ProfileIcon } from "@/components/icons/profile";
 import { ZahialgaIcon } from "@/components/icons/zahialga";
