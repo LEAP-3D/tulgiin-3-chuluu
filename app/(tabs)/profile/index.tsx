@@ -3,7 +3,7 @@ import ProfileScreen, {
   ProfileField,
 } from "@/components/_tabsComponents/_profileComponents";
 import { useState } from "react";
-import { Alert, SafeAreaView, ScrollView, View } from "react-native";
+import { Alert } from "react-native";
 
 export default function TabTwoScreen() {
   const [isEditing, setIsEditing] = useState(false);
@@ -46,20 +46,14 @@ export default function TabTwoScreen() {
   };
 
   return (
-    <SafeAreaView>
-      <ScrollView>
-        <View>
-          <ProfileScreen
-            profile={profile}
-            isEditing={isEditing}
-            isSaving={isSaving}
-            onChangeField={handleChangeField}
-            onEditPress={handleEditPress}
-            onSavePress={handleSavePress}
-            onLogoutPress={handleLogoutPress}
-          />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <ProfileScreen
+      profile={profile}
+      isEditing={isEditing}
+      isSaving={isSaving}
+      onChangeField={handleChangeField}
+      onEditPress={handleEditPress}
+      onSavePress={handleSavePress}
+      onLogoutPress={handleLogoutPress}
+    />
   );
 }
