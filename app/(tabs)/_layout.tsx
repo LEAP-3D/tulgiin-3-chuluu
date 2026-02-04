@@ -2,15 +2,11 @@ import { Tabs } from "expo-router";
 import { View } from "react-native";
 import Header from "@/components/_tabsComponents/_header/Header";
 import { HapticTab } from "@/components/haptic-tab";
-import { Colors } from "@/constants/theme";
-import { useColorScheme } from "@/hooks/use-color-scheme";
 import { UilcilgeeIcon } from "@/components/icons/uilcilgee";
 import { ZahialgaIcon } from "@/components/icons/zahialga";
 import { ProfileIcon } from "@/components/icons/profile";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <View style={{ flex: 1 }}>
       {/* ✅ Чиний header — 1 удаа, бүх tab дээр */}
@@ -20,7 +16,12 @@ export default function TabLayout() {
         screenOptions={{
           headerShown: false, // Expo Router default header унтраана
           tabBarButton: HapticTab,
-          tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+          tabBarActiveTintColor: "#FF8A1E",
+          tabBarInactiveTintColor: "#6E6E6E",
+          tabBarStyle: {
+            backgroundColor: "#FFFFFF",
+            borderTopColor: "#E5E5E5",
+          },
         }}
       >
         {/* Tabs.Screen-үүд */}
