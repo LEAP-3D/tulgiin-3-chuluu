@@ -1,4 +1,3 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -10,16 +9,25 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
+import TsahilgaanIcon from "@/components/icons/_serviceIcons/tsahilgaanIcon";
+import SantehnikIcon from "@/components/icons/_serviceIcons/santehnikIcon";
+import TsoojIcon from "@/components/icons/_serviceIcons/tsoojIcon";
+import BudagIcon from "@/components/icons/_serviceIcons/budagIcon";
+import MujaanIcon from "@/components/icons/_serviceIcons/mujaanIcon";
+import ShawijustgalIcon from "@/components/icons/_serviceIcons/shawijustgalIcon";
+import HalaaltIcon from "@/components/icons/_serviceIcons/halaaltIcon";
+import InternetIcon from "@/components/icons/_serviceIcons/internetIcon";
+import SparklesIcon from "@/components/icons/_serviceIcons/sparklesIcon";
 
 const services = [
-  { key: "electric", label: "Цахилгаан", icon: "power-plug" },
-  { key: "plumbing", label: "Сантехник", icon: "water" },
-  { key: "lock", label: "Цоож", icon: "lock" },
-  { key: "paint", label: "Будаг", icon: "format-paint" },
-  { key: "carpenter", label: "Мужаан", icon: "hammer" },
-  { key: "clean", label: "Ариутгал", icon: "broom" },
-  { key: "heat", label: "Халаалт", icon: "fire" },
-  { key: "internet", label: "Интернет", icon: "wifi" },
+  { key: "electric", label: "Цахилгаан", Icon: TsahilgaanIcon },
+  { key: "plumbing", label: "Сантехник", Icon: SantehnikIcon },
+  { key: "lock", label: "Цоож", Icon: TsoojIcon },
+  { key: "paint", label: "Будаг", Icon: BudagIcon },
+  { key: "carpenter", label: "Мужаан", Icon: MujaanIcon },
+  { key: "clean", label: "Ариутгал", Icon: ShawijustgalIcon },
+  { key: "heat", label: "Халаалт", Icon: HalaaltIcon },
+  { key: "internet", label: "Интернет", Icon: InternetIcon },
 ];
 
 const promoSlides = [
@@ -101,11 +109,7 @@ export default function ServiceScreen() {
               onPress={() => handleServicePress(item.label)}
             >
               <View style={styles.iconWrap}>
-                <MaterialCommunityIcons
-                  name={item.icon as any}
-                  size={26}
-                  color="#F59E0B"
-                />
+                <item.Icon width={28} height={28} />
               </View>
               <Text style={styles.iconLabel}>{item.label}</Text>
             </Pressable>
@@ -172,11 +176,7 @@ export default function ServiceScreen() {
         style={[styles.fab, { bottom: 24 + insets.bottom }]}
         onPress={() => console.log("fab")}
       >
-        <MaterialCommunityIcons
-          name="star-four-points"
-          size={26}
-          color="#F59E0B"
-        />
+        <SparklesIcon width={26} height={26} />
       </Pressable>
     </View>
   );

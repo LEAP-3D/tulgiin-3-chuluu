@@ -128,6 +128,9 @@ export default function ProfileScreen({
                 icon={<Ionicons name="call-outline" size={20} color="#8B8B8B" />}
                 placeholder="Утасны дугаар"
                 keyboardType="phone-pad"
+                inputMode="tel"
+                textContentType="telephoneNumber"
+                autoComplete="tel"
                 value={profile.phone}
                 onChangeText={(value) => onChangeField("phone", value)}
                 editable={isEditing}
@@ -174,6 +177,9 @@ export default function ProfileScreen({
               icon={<Ionicons name="call-outline" size={20} color="#9AA0A6" />}
               placeholder="Утасны дугаар"
               keyboardType="phone-pad"
+              inputMode="tel"
+              textContentType="telephoneNumber"
+              autoComplete="tel"
               value={profile.phone}
               onChangeText={(value) => onChangeField("phone", value)}
               editable={isEditing}
@@ -249,6 +255,9 @@ function FieldRow({
   onChangeText,
   editable,
   keyboardType,
+  inputMode,
+  textContentType,
+  autoComplete,
 }: {
   icon: React.ReactNode;
   placeholder: string;
@@ -256,6 +265,9 @@ function FieldRow({
   onChangeText: (value: string) => void;
   editable: boolean;
   keyboardType?: "default" | "phone-pad";
+  inputMode?: "text" | "tel" | "numeric";
+  textContentType?: "none" | "telephoneNumber";
+  autoComplete?: "off" | "tel";
 }) {
   return (
     <View style={styles.row}>
@@ -265,6 +277,9 @@ function FieldRow({
         placeholderTextColor="#9AA0A6"
         style={styles.input}
         keyboardType={keyboardType ?? "default"}
+        inputMode={inputMode}
+        textContentType={textContentType}
+        autoComplete={autoComplete}
         value={value}
         onChangeText={onChangeText}
         editable={editable}
