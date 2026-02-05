@@ -13,6 +13,7 @@ export default function Page() {
   const [code, setCode] = React.useState("");
   const [showEmailCode, setShowEmailCode] = React.useState(false);
   const codeInputRef = React.useRef<TextInput>(null);
+  const [showSuccess, setShowSuccess] = React.useState(false);
 
   // Start passwordless sign-in: send email code
   const onSignInPress = React.useCallback(async () => {
@@ -22,19 +23,11 @@ export default function Page() {
       const signInAttempt = await signIn.create({ identifier: emailAddress });
 
       if (signInAttempt.status === "complete") {
+        setShowSuccess(true);
         await setActive({
           session: signInAttempt.createdSessionId,
-          navigate: async ({ session }) => {
-            if (session?.currentTask) {
-              // Check for tasks and navigate to custom UI to help users resolve them
-              // See https://clerk.com/docs/guides/development/custom-flows/authentication/session-tasks
-              console.log(session?.currentTask);
-              return;
-            }
-
-            router.replace("/");
-          },
         });
+        setTimeout(() => router.replace("/"), 900);
       } else {
         const emailCodeFactor = signInAttempt.supportedFirstFactors?.find(
           (factor) => factor.strategy === "email_code",
@@ -67,19 +60,11 @@ export default function Page() {
       });
 
       if (signInAttempt.status === "complete") {
+        setShowSuccess(true);
         await setActive({
           session: signInAttempt.createdSessionId,
-          navigate: async ({ session }) => {
-            if (session?.currentTask) {
-              // Check for tasks and navigate to custom UI to help users resolve them
-              // See https://clerk.com/docs/guides/development/custom-flows/authentication/session-tasks
-              console.log(session?.currentTask);
-              return;
-            }
-
-            router.replace("/");
-          },
         });
+        setTimeout(() => router.replace("/"), 900);
       } else {
         console.error(JSON.stringify(signInAttempt, null, 2));
       }
@@ -146,6 +131,17 @@ export default function Page() {
           >
             <Text style={styles.buttonText}>Үргэлжлүүлэх</Text>
           </Pressable>
+
+          {showSuccess && (
+            <View style={styles.successOverlay}>
+              <View style={styles.successCard}>
+                <View style={styles.successIcon}>
+                  <Text style={styles.successIconText}>✓</Text>
+                </View>
+                <Text style={styles.successText}>Амжилттай нэвтэрлээ!</Text>
+              </View>
+            </View>
+          )}
         </View>
       </SafeAreaView>
     );
@@ -190,6 +186,17 @@ export default function Page() {
             <Text style={styles.linkAccent}>Бүртгүүлэх</Text>
           </Link>
         </View>
+
+        {showSuccess && (
+          <View style={styles.successOverlay}>
+            <View style={styles.successCard}>
+              <View style={styles.successIcon}>
+                <Text style={styles.successIconText}>✓</Text>
+              </View>
+              <Text style={styles.successText}>Амжилттай нэвтэрлээ!</Text>
+            </View>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -300,5 +307,43 @@ const styles = StyleSheet.create({
     opacity: 0,
     height: 0,
     width: 0,
+  },
+  successOverlay: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.35)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  successCard: {
+    backgroundColor: "#FFFFFF",
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    alignItems: "center",
+    minWidth: 220,
+  },
+  successIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 2,
+    borderColor: "#F59E0B",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  successIconText: {
+    fontSize: 20,
+    color: "#F59E0B",
+    fontWeight: "700",
+  },
+  successText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1F1F1F",
   },
 });

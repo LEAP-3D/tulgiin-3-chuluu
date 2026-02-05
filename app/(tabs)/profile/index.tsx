@@ -12,9 +12,8 @@ export default function TabTwoScreen() {
   const [profile, setProfile] = useState<ProfileData>({
     lastName: "Бат",
     firstName: "Энх",
-    profession: "Бариста",
+    email: "somequiett@gmail.com",
     phone: "9900 1122",
-    location: "Улаанбаатар",
     avatarUrl: "https://cdn-icons-png.flaticon.com/512/4140/4140048.png",
     displayName: "Хэрэглэгч",
   });
