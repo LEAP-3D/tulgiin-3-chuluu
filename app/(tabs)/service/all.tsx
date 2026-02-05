@@ -1,4 +1,3 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
@@ -10,24 +9,42 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import TsahilgaanIcon from "@/components/icons/_serviceIcons/tsahilgaanIcon";
+import SantehnikIcon from "@/components/icons/_serviceIcons/santehnikIcon";
+import TsoojIcon from "@/components/icons/_serviceIcons/tsoojIcon";
+import BudagIcon from "@/components/icons/_serviceIcons/budagIcon";
+import MujaanIcon from "@/components/icons/_serviceIcons/mujaanIcon";
+import ShawijustgalIcon from "@/components/icons/_serviceIcons/shawijustgalIcon";
+import HalaaltIcon from "@/components/icons/_serviceIcons/halaaltIcon";
+import InternetIcon from "@/components/icons/_serviceIcons/internetIcon";
+import AgaarjuulaltIcon from "@/components/icons/_serviceIcons/agaarjuulaltIcon";
+import AyulgviBaidalIcon from "@/components/icons/_serviceIcons/ayulgvibaidalIcon";
+import ShiltoliIcon from "@/components/icons/_serviceIcons/shiltoliIcon";
+import TawilgaIcon from "@/components/icons/_serviceIcons/tawilgaIcon";
+import ShalIcon from "@/components/icons/_serviceIcons/shalIcon";
+import DeewerIcon from "@/components/icons/_serviceIcons/deewerIcon";
+import NvvlgeltIcon from "@/components/icons/_serviceIcons/nvvlgeltIcon";
+import GadnatalbaiIcon from "@/components/icons/_serviceIcons/gadnatalbaiIcon";
+import LeftArrowIcon from "@/components/icons/_serviceIcons/leftarrowIcon";
+import SearchIcon from "@/components/icons/_serviceIcons/searchIcon";
 
 const services = [
-  { key: "electric", label: "Цахилгаан", icon: "power-plug" },
-  { key: "plumbing", label: "Сантехник", icon: "water" },
-  { key: "lock", label: "Цоож", icon: "lock" },
-  { key: "paint", label: "Будаг", icon: "format-paint" },
-  { key: "carpenter", label: "Мужаан", icon: "hammer" },
-  { key: "clean", label: "Ариутгал", icon: "broom" },
-  { key: "heat", label: "Халаалт", icon: "fire" },
-  { key: "internet", label: "Интернет", icon: "wifi" },
-  { key: "ac", label: "Агааржуулалт", icon: "fan" },
-  { key: "security", label: "Аюулгүй байдал", icon: "shield-check" },
-  { key: "glass", label: "Шил, толь", icon: "mirror" },
-  { key: "furniture", label: "Тавилга", icon: "sofa" },
-  { key: "floor", label: "Шал", icon: "floor-plan" },
-  { key: "roof", label: "Дээвэр", icon: "home-roof" },
-  { key: "moving", label: "Нүүлгэлт", icon: "truck-fast" },
-  { key: "garden", label: "Гадна талбай", icon: "pine-tree" },
+  { key: "electric", label: "Цахилгаан", Icon: TsahilgaanIcon },
+  { key: "plumbing", label: "Сантехник", Icon: SantehnikIcon },
+  { key: "lock", label: "Цоож", Icon: TsoojIcon },
+  { key: "paint", label: "Будаг", Icon: BudagIcon },
+  { key: "carpenter", label: "Мужаан", Icon: MujaanIcon },
+  { key: "clean", label: "Ариутгал", Icon: ShawijustgalIcon },
+  { key: "heat", label: "Халаалт", Icon: HalaaltIcon },
+  { key: "internet", label: "Интернет", Icon: InternetIcon },
+  { key: "ac", label: "Агааржуулалт", Icon: AgaarjuulaltIcon },
+  { key: "security", label: "Аюулгүй байдал", Icon: AyulgviBaidalIcon },
+  { key: "glass", label: "Шил, толь", Icon: ShiltoliIcon },
+  { key: "furniture", label: "Тавилга", Icon: TawilgaIcon },
+  { key: "floor", label: "Шал", Icon: ShalIcon },
+  { key: "roof", label: "Дээвэр", Icon: DeewerIcon },
+  { key: "moving", label: "Нүүлгэлт", Icon: NvvlgeltIcon },
+  { key: "garden", label: "Гадна талбай", Icon: GadnatalbaiIcon },
 ];
 
 export default function ServiceAllScreen() {
@@ -61,10 +78,10 @@ export default function ServiceAllScreen() {
             hitSlop={10}
             style={styles.backButton}
           >
-            <MaterialCommunityIcons name="arrow-left" size={22} color="#111111" />
+            <LeftArrowIcon width={22} height={22} />
           </Pressable>
           <View style={styles.searchInputWrap}>
-            <MaterialCommunityIcons name="magnify" size={20} color="#9B9B9B" />
+            <SearchIcon width={20} height={20} />
             <TextInput
               placeholder="Хайх"
               placeholderTextColor="#9B9B9B"
@@ -83,11 +100,7 @@ export default function ServiceAllScreen() {
               onPress={() => handleServicePress(item.label)}
             >
               <View style={styles.iconWrap}>
-                <MaterialCommunityIcons
-                  name={item.icon as any}
-                  size={26}
-                  color="#F59E0B"
-                />
+                <item.Icon width={26} height={26} />
               </View>
               <Text style={styles.iconLabel}>{item.label}</Text>
             </Pressable>
