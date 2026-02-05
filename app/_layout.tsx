@@ -17,7 +17,7 @@ const tokenCache = {
     SecureStore.setItemAsync(key, value),
 };
 export const unstable_settings = {
-  anchor: "(tabs)",
+  anchor: "(auth)",
 };
 
 export default function RootLayout() {
@@ -29,7 +29,11 @@ export default function RootLayout() {
         <ThemeProvider
           value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
         >
-          <Stack screenOptions={{ headerShown: false }}>
+          <Stack
+            screenOptions={{ headerShown: false }}
+            initialRouteName="(auth)"
+          >
+            <Stack.Screen name="(auth)" />
             <Stack.Screen name="(tabs)" />
             <Stack.Screen
               name="modal"
