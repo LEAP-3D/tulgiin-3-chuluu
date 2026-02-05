@@ -1,9 +1,9 @@
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
 import { useSignIn } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import * as React from "react";
-import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import LeftArrowIcon from "@/components/icons/_serviceIcons/leftarrowIcon";
 
 export default function Page() {
   const { signIn, setActive, isLoaded } = useSignIn();
@@ -12,6 +12,7 @@ export default function Page() {
   const [emailAddress, setEmailAddress] = React.useState("");
   const [code, setCode] = React.useState("");
   const [showEmailCode, setShowEmailCode] = React.useState(false);
+  const codeInputRef = React.useRef<TextInput>(null);
 
   // Start passwordless sign-in: send email code
   const onSignInPress = React.useCallback(async () => {
@@ -90,103 +91,163 @@ export default function Page() {
   // Display email code verification form
   if (showEmailCode) {
     return (
-      <ThemedView style={styles.container}>
-        <ThemedText type="title" style={styles.title}>
-          Verify your email
-        </ThemedText>
-        <ThemedText style={styles.description}>
-          A verification code has been sent to your email.
-        </ThemedText>
-        <TextInput
-          style={styles.input}
-          value={code}
-          placeholder="Enter verification code"
-          placeholderTextColor="#666666"
-          onChangeText={(code) => setCode(code)}
-          keyboardType="numeric"
-        />
-        <Pressable
-          style={({ pressed }) => [
-            styles.button,
-            pressed && styles.buttonPressed,
-          ]}
-          onPress={onVerifyPress}
-        >
-          <ThemedText style={styles.buttonText}>Verify</ThemedText>
-        </Pressable>
-      </ThemedView>
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.container}>
+          <Pressable
+            style={styles.backButton}
+            onPress={() => setShowEmailCode(false)}
+            hitSlop={10}
+          >
+            <LeftArrowIcon width={20} height={20} />
+          </Pressable>
+
+          <Text style={styles.title}>Нэвтрэх</Text>
+          <Text style={styles.subtitle}>OTP оруулна уу</Text>
+          <Text style={styles.helper}>
+            И-мэйл хаягт ирсэн 6 оронтой баталгаажуулах кодыг оруулна уу.
+          </Text>
+
+          <Pressable
+            style={styles.otpRow}
+            onPress={() => codeInputRef.current?.focus()}
+          >
+            {Array.from({ length: 6 }).map((_, index) => (
+              <View
+                key={`otp-${index}`}
+                style={[
+                  styles.otpBox,
+                  code[index] ? styles.otpBoxActive : null,
+                ]}
+              >
+                <Text style={styles.otpText}>{code[index] ?? ""}</Text>
+              </View>
+            ))}
+          </Pressable>
+
+          <TextInput
+            ref={codeInputRef}
+            style={styles.hiddenInput}
+            value={code}
+            onChangeText={(value) => setCode(value.replace(/\D/g, ""))}
+            keyboardType="number-pad"
+            textContentType="oneTimeCode"
+            maxLength={6}
+            autoFocus
+          />
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.button,
+              code.length !== 6 && styles.buttonDisabled,
+              pressed && styles.buttonPressed,
+            ]}
+            onPress={onVerifyPress}
+            disabled={code.length !== 6}
+          >
+            <Text style={styles.buttonText}>Үргэлжлүүлэх</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText type="title" style={styles.title}>
-        Sign in
-      </ThemedText>
-      <ThemedText style={styles.label}>Email address</ThemedText>
-      <TextInput
-        style={styles.input}
-        autoCapitalize="none"
-        value={emailAddress}
-        placeholder="Enter email"
-        placeholderTextColor="#666666"
-        onChangeText={(emailAddress) => setEmailAddress(emailAddress)}
-        keyboardType="email-address"
-      />
-      <Pressable
-        style={({ pressed }) => [
-          styles.button,
-          !emailAddress && styles.buttonDisabled,
-          pressed && styles.buttonPressed,
-        ]}
-        onPress={onSignInPress}
-        disabled={!emailAddress}
-      >
-        <ThemedText style={styles.buttonText}>Send code</ThemedText>
-      </Pressable>
-      <View style={styles.linkContainer}>
-        <ThemedText>Don't have an account? </ThemedText>
-        <Link href="/sign-up">
-          <ThemedText type="link">Sign up</ThemedText>
-        </Link>
+    <SafeAreaView style={styles.safe}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Нэвтрэх</Text>
+        <Text style={styles.subtitle}>Та и-мэйл хаягаа оруулна уу</Text>
+        <Text style={styles.helper}>
+          Бүртгэлээ баталгаажуулахын тулд и-мэйл хаягаа оруулна уу.
+        </Text>
+
+        <View style={styles.inputWrap}>
+          <TextInput
+            style={styles.input}
+            autoCapitalize="none"
+            value={emailAddress}
+            placeholder="И-мэйл хаяг"
+            placeholderTextColor="#9B9B9B"
+            onChangeText={(email) => setEmailAddress(email)}
+            keyboardType="email-address"
+          />
+        </View>
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.button,
+            !emailAddress && styles.buttonDisabled,
+            pressed && styles.buttonPressed,
+          ]}
+          onPress={onSignInPress}
+          disabled={!emailAddress}
+        >
+          <Text style={styles.buttonText}>Үргэлжлүүлэх</Text>
+        </Pressable>
+
+        <View style={styles.linkContainer}>
+          <Text style={styles.linkMuted}>Бүртгэлгүй юу?</Text>
+          <Link href="/sign-up">
+            <Text style={styles.linkAccent}>Бүртгүүлэх</Text>
+          </Link>
+        </View>
       </View>
-    </ThemedView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
   container: {
     flex: 1,
-    padding: 20,
-    gap: 12,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  backButton: {
+    width: 32,
+    height: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
   },
   title: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#1F1F1F",
     marginBottom: 8,
   },
-  description: {
+  subtitle: {
     fontSize: 14,
-    marginBottom: 16,
-    opacity: 0.8,
-  },
-  label: {
     fontWeight: "600",
-    fontSize: 14,
+    color: "#1F1F1F",
+    marginBottom: 6,
+  },
+  helper: {
+    fontSize: 12,
+    color: "#8E8E8E",
+    lineHeight: 16,
+    marginBottom: 14,
+  },
+  inputWrap: {
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    height: 44,
+    justifyContent: "center",
   },
   input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 12,
     fontSize: 16,
-    backgroundColor: "#fff",
+    color: "#1F1F1F",
   },
   button: {
-    backgroundColor: "#0a7ea4",
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+    backgroundColor: "#F59E0B",
+    paddingVertical: 14,
+    borderRadius: 12,
     alignItems: "center",
-    marginTop: 8,
+    marginTop: 16,
   },
   buttonPressed: {
     opacity: 0.7,
@@ -195,13 +256,49 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   buttonText: {
-    color: "#fff",
-    fontWeight: "600",
+    color: "#FFFFFF",
+    fontWeight: "700",
   },
   linkContainer: {
     flexDirection: "row",
     gap: 4,
     marginTop: 12,
     alignItems: "center",
+  },
+  linkMuted: {
+    color: "#8E8E8E",
+  },
+  linkAccent: {
+    color: "#F59E0B",
+    fontWeight: "600",
+  },
+  otpRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+    marginBottom: 8,
+  },
+  otpBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  otpBoxActive: {
+    borderColor: "#F59E0B",
+  },
+  otpText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1F1F1F",
+  },
+  hiddenInput: {
+    position: "absolute",
+    opacity: 0,
+    height: 0,
+    width: 0,
   },
 });
