@@ -10,7 +10,7 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
 type Props = {
   profile: ProfileData;
@@ -25,16 +25,15 @@ type Props = {
 export type ProfileData = {
   lastName: string;
   firstName: string;
-  profession: string;
+  email: string;
   phone: string;
-  location: string;
   avatarUrl?: string;
   displayName?: string;
 };
 
 export type ProfileField = keyof Pick<
   ProfileData,
-  "lastName" | "firstName" | "profession" | "phone" | "location"
+  "lastName" | "firstName" | "email" | "phone"
 >;
 
 export default function ProfileScreen({
@@ -48,202 +47,153 @@ export default function ProfileScreen({
 }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container}>
-        {/* Header card */}
-        <View style={[styles.headerCard, isEditing && styles.headerCardEdit]}>
-          <View style={styles.avatarWrap}>
+      {isEditing ? (
+        <ScrollView contentContainerStyle={styles.editContainer}>
+          <Pressable
+            style={styles.backRow}
+            onPress={onEditPress ?? (() => Alert.alert("Буцах", "Back pressed"))}
+            hitSlop={10}
+          >
+            <Ionicons name="arrow-back" size={18} color="#111" />
+            <Text style={styles.backTitle}>Хувийн тохиргоо</Text>
+          </Pressable>
+
+          <View style={styles.editAvatarWrap}>
             <Image
               source={{
                 uri:
                   profile.avatarUrl ??
                   "https://cdn-icons-png.flaticon.com/512/4140/4140048.png",
               }}
-              style={styles.avatar}
+              style={styles.editAvatar}
+            />
+            <View style={styles.cameraBadge}>
+              <Ionicons name="camera" size={14} color="#111" />
+            </View>
+          </View>
+
+          <Text style={styles.inputLabel}>Овог нэр</Text>
+          <View style={styles.inputCard}>
+            <FieldRow
+              icon={<Ionicons name="person-outline" size={18} color="#8B8B8B" />}
+              placeholder="Хэрэглэгч"
+              value={[profile.lastName, profile.firstName]
+                .filter(Boolean)
+                .join(" ")
+                .trim()}
+              onChangeText={(value) => {
+                const parts = value.trim().split(/\s+/);
+                const nextLast = parts[0] ?? "";
+                const nextFirst = parts.slice(1).join(" ");
+                onChangeField("lastName", nextLast);
+                onChangeField("firstName", nextFirst);
+              }}
+              editable
             />
           </View>
 
-          <View style={isEditing ? styles.headerTextRow : undefined}>
-            <Text style={[styles.title, isEditing && styles.titleEdit]}>
-              {profile.displayName ?? "Хэрэглэгч"}
-            </Text>
-            {!isEditing && (
-              <Pressable
-                style={({ pressed }) => [
-                  styles.editBtn,
-                  pressed && { opacity: 0.85 },
-                ]}
-                onPress={
-                  onEditPress ?? (() => Alert.alert("Засах", "Edit pressed"))
-                }
-              >
-                <Ionicons name="pencil" size={18} color="#fff" />
-                <Text style={styles.editText}>Засах</Text>
-              </Pressable>
-            )}
+          <Text style={styles.inputLabel}>И-Мэйл хаяг</Text>
+          <View style={styles.inputCard}>
+            <FieldRow
+              icon={<Ionicons name="mail-outline" size={18} color="#8B8B8B" />}
+              placeholder="somequiett@gmail.com"
+              value={profile.email}
+              onChangeText={(value) => onChangeField("email", value)}
+              editable
+              keyboardType="default"
+            />
           </View>
-        </View>
 
-        {/* Info card */}
-        {isEditing ? (
-          <>
-            <View style={styles.inputCard}>
-              <FieldRow
-                icon={
-                  <Ionicons name="person-outline" size={20} color="#8B8B8B" />
-                }
-                placeholder="Овог"
-                value={profile.lastName}
-                onChangeText={(value) => onChangeField("lastName", value)}
-                editable={isEditing}
-              />
-            </View>
-            <View style={styles.inputCard}>
-              <FieldRow
-                icon={
-                  <Ionicons name="person-outline" size={20} color="#8B8B8B" />
-                }
-                placeholder="Нэр"
-                value={profile.firstName}
-                onChangeText={(value) => onChangeField("firstName", value)}
-                editable={isEditing}
-              />
-            </View>
-            <View style={styles.inputCard}>
-              <FieldRow
-                icon={
-                  <MaterialCommunityIcons
-                    name="briefcase-outline"
-                    size={20}
-                    color="#8B8B8B"
-                  />
-                }
-                placeholder="Мэргэжил"
-                value={profile.profession}
-                onChangeText={(value) => onChangeField("profession", value)}
-                editable={isEditing}
-              />
-            </View>
-            <View style={styles.inputCard}>
-              <FieldRow
-                icon={<Ionicons name="call-outline" size={20} color="#8B8B8B" />}
-                placeholder="Утасны дугаар"
-                keyboardType="phone-pad"
-                inputMode="tel"
-                textContentType="telephoneNumber"
-                autoComplete="tel"
-                value={profile.phone}
-                onChangeText={(value) => onChangeField("phone", value)}
-                editable={isEditing}
-              />
-            </View>
-          </>
-        ) : (
-          <View style={styles.card}>
+          <Text style={styles.inputLabel}>Утасны дугаар</Text>
+          <View style={styles.inputCard}>
             <FieldRow
-              icon={
-                <Ionicons name="person-outline" size={20} color="#9AA0A6" />
-              }
-              placeholder="Овог"
-              value={profile.lastName}
-              onChangeText={(value) => onChangeField("lastName", value)}
-              editable={isEditing}
-            />
-            <Divider />
-            <FieldRow
-              icon={
-                <Ionicons name="person-outline" size={20} color="#9AA0A6" />
-              }
-              placeholder="Нэр"
-              value={profile.firstName}
-              onChangeText={(value) => onChangeField("firstName", value)}
-              editable={isEditing}
-            />
-            <Divider />
-            <FieldRow
-              icon={
-                <MaterialCommunityIcons
-                  name="briefcase-outline"
-                  size={20}
-                  color="#9AA0A6"
-                />
-              }
-              placeholder="Мэргэжил"
-              value={profile.profession}
-              onChangeText={(value) => onChangeField("profession", value)}
-              editable={isEditing}
-            />
-            <Divider />
-            <FieldRow
-              icon={<Ionicons name="call-outline" size={20} color="#9AA0A6" />}
-              placeholder="Утасны дугаар"
+              icon={<Ionicons name="call-outline" size={18} color="#8B8B8B" />}
+              placeholder="88888888"
+              value={profile.phone}
+              onChangeText={(value) => onChangeField("phone", value)}
+              editable
               keyboardType="phone-pad"
               inputMode="tel"
               textContentType="telephoneNumber"
               autoComplete="tel"
-              value={profile.phone}
-              onChangeText={(value) => onChangeField("phone", value)}
-              editable={isEditing}
             />
           </View>
-        )}
 
-        {/* Location + Logout card */}
-        {isEditing ? (
-          <View style={styles.inputCard}>
-            <FieldRow
-              icon={<Ionicons name="location-outline" size={20} color="#8B8B8B" />}
-              placeholder="Байршил"
-              value={profile.location}
-              onChangeText={(value) => onChangeField("location", value)}
-              editable={isEditing}
-            />
-          </View>
-        ) : (
-          <View style={styles.card}>
-            <FieldRow
-              icon={
-                <Ionicons name="location-outline" size={20} color="#9AA0A6" />
-              }
-              placeholder="Байршил"
-              value={profile.location}
-              onChangeText={(value) => onChangeField("location", value)}
-              editable={isEditing}
-            />
-            <Divider />
-
-            <Pressable
-              style={({ pressed }) => [
-                styles.logoutRow,
-                pressed && { backgroundColor: "#FAFAFA" },
-              ]}
-              onPress={
-                onLogoutPress ?? (() => Alert.alert("Гарах", "Logout pressed"))
-              }
-            >
-              <View style={styles.logoutIconBox}>
-                <Ionicons name="log-out-outline" size={20} color="#E75A5A" />
-              </View>
-              <Text style={styles.logoutText}>Гарах</Text>
-            </Pressable>
-          </View>
-        )}
-
-        {isEditing && (
           <Pressable
             style={({ pressed }) => [
-              styles.saveBtn,
+              styles.saveBtnDark,
               pressed && { opacity: 0.85 },
               isSaving && { opacity: 0.6 },
             ]}
             onPress={onSavePress}
             disabled={isSaving}
           >
-            <Text style={styles.saveText}>
+            <Text style={styles.saveTextDark}>
               {isSaving ? "Хадгалж байна..." : "Хадгалах"}
             </Text>
           </Pressable>
-        )}
-      </ScrollView>
+        </ScrollView>
+      ) : (
+        <ScrollView contentContainerStyle={styles.container}>
+          <Pressable style={styles.profileCard} onPress={onEditPress}>
+            <View style={styles.profileRow}>
+              <View style={styles.avatarMini}>
+                <Ionicons name="person" size={18} color="#8B8B8B" />
+              </View>
+              <Text style={styles.profileName}>
+                {profile.displayName ??
+                  ([profile.lastName, profile.firstName]
+                    .filter(Boolean)
+                    .join(" ")
+                    .trim() || "Хэрэглэгч")}
+              </Text>
+            </View>
+            <Ionicons name="pencil-outline" size={18} color="#6B6B6B" />
+          </Pressable>
+
+          <Pressable style={styles.infoCard}>
+            <View style={styles.infoIcon}>
+              <Ionicons name="construct-outline" size={18} color="#111" />
+            </View>
+            <View style={styles.infoTextWrap}>
+              <Text style={styles.infoTitle}>Засварчинаар нэвтрэх</Text>
+              <Text style={styles.infoDesc}>
+                Та засварчнаар нэвтэрээд нэмэлт орлого олоорой
+              </Text>
+            </View>
+          </Pressable>
+
+          <View style={styles.menuCard}>
+            <MenuRow
+              icon="person-outline"
+              label="Хувийн тохиргоо"
+              onPress={onEditPress}
+            />
+            <Divider />
+            <MenuRow icon="notifications-outline" label="Мэдэгдэл" />
+            <Divider />
+            <MenuRow icon="card-outline" label="Карт холбох" />
+          </View>
+
+          <View style={styles.menuCard}>
+            <MenuRow icon="help-circle-outline" label="Тусламж" />
+            <Divider />
+            <MenuRow icon="flag-outline" label="Гомдол" />
+          </View>
+
+          <Pressable
+            style={styles.logoutCard}
+            onPress={
+              onLogoutPress ?? (() => Alert.alert("Гарах", "Logout pressed"))
+            }
+          >
+            <View style={styles.logoutIcon}>
+              <Ionicons name="log-out-outline" size={18} color="#D44A4A" />
+            </View>
+            <Text style={styles.logoutTextAlt}>Гарах</Text>
+          </Pressable>
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }
@@ -274,7 +224,7 @@ function FieldRow({
       <View style={styles.leftIcon}>{icon}</View>
       <TextInput
         placeholder={placeholder}
-        placeholderTextColor="#9AA0A6"
+  placeholderTextColor="#9AA0A6"
         style={styles.input}
         keyboardType={keyboardType ?? "default"}
         inputMode={inputMode}
@@ -297,119 +247,222 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#F6F7FB" },
   container: {
     padding: 16,
+    paddingTop: 0,
     paddingBottom: 28,
+    marginTop: 0,
     gap: 14,
   },
 
-  headerCard: {
+  profileCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 18,
-    paddingVertical: 18,
-    paddingHorizontal: 16,
-    alignItems: "center",
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
     borderWidth: 1,
-    borderColor: "#EEF0F3",
-  },
-  headerCardEdit: {
+    borderColor: "#E8E8E8",
     flexDirection: "row",
     alignItems: "center",
-    gap: 14,
+    justifyContent: "space-between",
   },
-
-  avatarWrap: {
-    width: 86,
-    height: 86,
-    borderRadius: 43,
-    backgroundColor: "#E9ECF5",
+  profileRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  avatarMini: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#EDEDED",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 10,
   },
-  avatar: { width: 76, height: 76, borderRadius: 38 },
-
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#111",
-    marginBottom: 12,
+  profileName: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#1F1F1F",
   },
-  titleEdit: {
-    marginBottom: 0,
+  infoCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: "#E8E8E8",
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
   },
-  headerTextRow: {
+  infoIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#F6F6F6",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  infoTextWrap: {
     flex: 1,
-    justifyContent: "center",
   },
-
-  editBtn: {
-    flexDirection: "row",
-    gap: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#111",
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 999,
-    minWidth: 110,
+  infoTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1F1F1F",
+    marginBottom: 4,
   },
-  editText: { color: "#fff", fontSize: 15, fontWeight: "600" },
-
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "#EEF0F3",
-    overflow: "hidden",
+  infoDesc: {
+    fontSize: 12,
+    color: "#8E8E8E",
+    lineHeight: 16,
   },
-  inputCard: {
+  menuCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#E6E6E6",
+    borderColor: "#E8E8E8",
+    overflow: "hidden",
   },
-
-  row: {
+  menuRow: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 14,
-    paddingVertical: 14,
+    paddingVertical: 12,
   },
-  leftIcon: { width: 34, alignItems: "center" },
-  input: {
-    flex: 1,
-    fontSize: 15,
-    color: "#111",
-    paddingVertical: 0,
+  menuLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  menuText: {
+    fontSize: 14,
+    color: "#1F1F1F",
+    fontWeight: "500",
   },
   divider: {
     height: 1,
-    backgroundColor: "#EEF0F3",
-    marginLeft: 48,
+    backgroundColor: "#EFEFEF",
+    marginLeft: 44,
   },
-
-  logoutRow: {
+  logoutCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: "#E8E8E8",
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 14,
-    paddingVertical: 14,
+    gap: 10,
   },
-  logoutIconBox: {
-    width: 34,
-    height: 34,
+  logoutIcon: {
+    width: 28,
+    height: 28,
     borderRadius: 10,
-    backgroundColor: "#FCE9E9",
+    backgroundColor: "#FDECEC",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 10,
   },
-  logoutText: { fontSize: 15, fontWeight: "600", color: "#111" },
+  logoutTextAlt: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1F1F1F",
+  },
 
-  saveBtn: {
-    alignSelf: "flex-end",
-    backgroundColor: "#FF9F1C",
-    paddingHorizontal: 22,
-    paddingVertical: 12,
-    borderRadius: 999,
+  editContainer: {
+    padding: 16,
+    paddingTop: 0,
+    paddingBottom: 28,
+    marginTop: 0,
   },
-  saveText: { color: "#111", fontSize: 15, fontWeight: "700" },
+  backRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 14,
+  },
+  backTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1F1F1F",
+  },
+  editAvatarWrap: {
+    alignSelf: "center",
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    backgroundColor: "#EDEDED",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  editAvatar: { width: 72, height: 72, borderRadius: 36 },
+  cameraBadge: {
+    position: "absolute",
+    right: -2,
+    bottom: -2,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#111",
+  },
+  inputLabel: {
+    fontSize: 13,
+    color: "#1F1F1F",
+    fontWeight: "600",
+    marginBottom: 6,
+    marginTop: 6,
+  },
+  inputCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E6E6E6",
+    paddingHorizontal: 10,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 6,
+    paddingVertical: 12,
+  },
+  leftIcon: { width: 30, alignItems: "center" },
+  input: {
+    flex: 1,
+    fontSize: 14,
+    color: "#111",
+    paddingVertical: 0,
+  },
+  saveBtnDark: {
+    marginTop: 18,
+    backgroundColor: "#111111",
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  saveTextDark: { color: "#FFFFFF", fontSize: 14, fontWeight: "600" },
 });
+
+function MenuRow({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: React.ComponentProps<typeof Ionicons>["name"];
+  label: string;
+  onPress?: () => void;
+}) {
+  return (
+    <Pressable style={styles.menuRow} onPress={onPress}>
+      <View style={styles.menuLeft}>
+        <Ionicons name={icon} size={18} color="#111" />
+        <Text style={styles.menuText}>{label}</Text>
+      </View>
+      <Ionicons name="chevron-forward" size={18} color="#B0B0B0" />
+    </Pressable>
+  );
+}

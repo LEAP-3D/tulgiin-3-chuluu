@@ -17,6 +17,7 @@ export default function Page() {
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [debugInfo, setDebugInfo] = React.useState<string | null>(null);
   const codeInputRef = React.useRef<TextInput>(null);
+  const [showSuccess, setShowSuccess] = React.useState(false);
 
   const getClerkErrorMessage = (
     err: unknown,
@@ -95,19 +96,11 @@ export default function Page() {
       // If verification was completed, set the session to active
       // and redirect the user
       if (signUpAttempt.status === "complete") {
+        setShowSuccess(true);
         await setActive({
           session: signUpAttempt.createdSessionId,
-          navigate: async ({ session }) => {
-            if (session?.currentTask) {
-              // Check for tasks and navigate to custom UI to help users resolve them
-              // See https://clerk.com/docs/guides/development/custom-flows/authentication/session-tasks
-              console.log(session?.currentTask);
-              return;
-            }
-
-            router.replace("/");
-          },
         });
+        setTimeout(() => router.replace("/"), 900);
       } else {
         // If the status is not complete, check why. User may need to
         // complete further steps.
@@ -205,6 +198,17 @@ export default function Page() {
           >
             <Text style={styles.buttonText}>Үргэлжлүүлэх</Text>
           </Pressable>
+
+          {showSuccess && (
+            <View style={styles.successOverlay}>
+              <View style={styles.successCard}>
+                <View style={styles.successIcon}>
+                  <Text style={styles.successIconText}>✓</Text>
+                </View>
+                <Text style={styles.successText}>Амжилттай нэвтэрлээ!</Text>
+              </View>
+            </View>
+          )}
         </View>
       </SafeAreaView>
     );
@@ -273,6 +277,17 @@ export default function Page() {
             <Text style={styles.linkAccent}>Нэвтрэх</Text>
           </Link>
         </View>
+
+        {showSuccess && (
+          <View style={styles.successOverlay}>
+            <View style={styles.successCard}>
+              <View style={styles.successIcon}>
+                <Text style={styles.successIconText}>✓</Text>
+              </View>
+              <Text style={styles.successText}>Амжилттай нэвтэрлээ!</Text>
+            </View>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -392,5 +407,43 @@ const styles = StyleSheet.create({
     opacity: 0,
     height: 0,
     width: 0,
+  },
+  successOverlay: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.35)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  successCard: {
+    backgroundColor: "#FFFFFF",
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    alignItems: "center",
+    minWidth: 220,
+  },
+  successIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 2,
+    borderColor: "#F59E0B",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  successIconText: {
+    fontSize: 20,
+    color: "#F59E0B",
+    fontWeight: "700",
+  },
+  successText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1F1F1F",
   },
 });
