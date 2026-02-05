@@ -2,6 +2,7 @@ import ProfileScreen, {
   ProfileData,
   ProfileField,
 } from "@/components/_tabsComponents/_profileComponents";
+import { useSignOut } from "@/components/sign-out-button";
 import { useState } from "react";
 import { Alert } from "react-native";
 
@@ -40,10 +41,7 @@ export default function TabTwoScreen() {
     }
   };
 
-  const handleLogoutPress = () => {
-    // TODO: Backend logout endpoint дуудна.
-    Alert.alert("Гарах", "Logout pressed");
-  };
+  const handleLogoutPress = useSignOut();
 
   return (
     <ProfileScreen

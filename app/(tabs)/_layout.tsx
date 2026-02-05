@@ -1,4 +1,5 @@
-import { Tabs } from "expo-router";
+import { useAuth } from "@clerk/clerk-expo";
+import { Redirect, Tabs } from "expo-router";
 import { View } from "react-native";
 import Header from "@/components/_tabsComponents/_header/Header";
 import { HapticTab } from "@/components/haptic-tab";
@@ -7,6 +8,16 @@ import { ZahialgaIcon } from "@/components/icons/zahialga";
 import { ProfileIcon } from "@/components/icons/profile";
 
 export default function TabLayout() {
+  const { isLoaded, isSignedIn } = useAuth();
+
+  if (!isLoaded) {
+    return null;
+  }
+
+  if (!isSignedIn) {
+    return <Redirect href="/(auth)/sign-in" />;
+  }
+
   return (
     <View style={{ flex: 1 }}>
       {/* ✅ Чиний header — 1 удаа, бүх tab дээр */}
