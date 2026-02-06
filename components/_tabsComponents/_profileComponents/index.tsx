@@ -46,7 +46,7 @@ export default function ProfileScreen({
   isSaving,
 }: Props) {
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={["left", "right", "bottom"]}>
       {isEditing ? (
         <ScrollView contentContainerStyle={styles.editContainer}>
           <Pressable
@@ -247,10 +247,10 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#F6F7FB" },
   container: {
     padding: 16,
-    paddingTop: 0,
+    paddingTop: 30,
     paddingBottom: 28,
     marginTop: 0,
-    gap: 14,
+    gap: 12,
   },
 
   profileCard: {
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
 
   editContainer: {
     padding: 16,
-    paddingTop: 0,
+    paddingTop: 30,
     paddingBottom: 28,
     marginTop: 0,
   },
