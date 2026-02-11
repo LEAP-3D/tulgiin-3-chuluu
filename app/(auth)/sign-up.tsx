@@ -100,7 +100,7 @@ export default function Page() {
         await setActive({
           session: signUpAttempt.createdSessionId,
         });
-        setTimeout(() => router.replace("/"), 900);
+        setTimeout(() => router.replace("/(tabs)/service"), 900);
       } else {
         // If the status is not complete, check why. User may need to
         // complete further steps.

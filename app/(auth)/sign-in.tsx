@@ -1,4 +1,4 @@
-import { useSignIn } from "@clerk/clerk-expo";
+import { useAuth, useSignIn } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import * as React from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
@@ -7,71 +7,161 @@ import LeftArrowIcon from "@/components/icons/_serviceIcons/leftarrowIcon";
 
 export default function Page() {
   const { signIn, setActive, isLoaded } = useSignIn();
+  const { isSignedIn, signOut, isLoaded: isAuthLoaded } = useAuth();
   const router = useRouter();
+
+  React.useEffect(() => {
+    if (!isAuthLoaded) return;
+    console.log("[AuthState] isSignedIn:", isSignedIn);
+  }, [isAuthLoaded, isSignedIn]);
 
   const [emailAddress, setEmailAddress] = React.useState("");
   const [code, setCode] = React.useState("");
   const [showEmailCode, setShowEmailCode] = React.useState(false);
   const codeInputRef = React.useRef<TextInput>(null);
   const [showSuccess, setShowSuccess] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+
+  const startEmailCodeSignIn = React.useCallback(async () => {
+    const signInAttempt = await signIn.create({
+      identifier: emailAddress.trim(),
+    });
+
+    if (signInAttempt.status === "complete") {
+      console.log(
+        "[SignIn] complete. createdSessionId:",
+        signInAttempt.createdSessionId,
+      );
+      setShowSuccess(true);
+      await setActive({
+        session: signInAttempt.createdSessionId,
+      });
+      console.log("[SignIn] setActive done");
+      setTimeout(() => router.replace("/(tabs)/service"), 900);
+      return;
+    }
+
+    const emailCodeFactor = signInAttempt.supportedFirstFactors?.find(
+      (factor) => factor.strategy === "email_code",
+    );
+
+    if (!emailCodeFactor) {
+      console.error(JSON.stringify(signInAttempt, null, 2));
+      return;
+    }
+
+    await signIn.prepareFirstFactor({
+      strategy: "email_code",
+      emailAddressId: emailCodeFactor.emailAddressId,
+    });
+    setShowEmailCode(true);
+  }, [signIn, emailAddress, setActive, router]);
 
   // Start passwordless sign-in: send email code
   const onSignInPress = React.useCallback(async () => {
-    if (!isLoaded) return;
+    if (!isLoaded || !isAuthLoaded) return;
+    if (isSubmitting) return;
+
+    if (isSignedIn) {
+      router.replace("/(tabs)/service");
+      return;
+    }
 
     try {
-      const signInAttempt = await signIn.create({ identifier: emailAddress });
-
-      if (signInAttempt.status === "complete") {
-        setShowSuccess(true);
-        await setActive({
-          session: signInAttempt.createdSessionId,
-        });
-        setTimeout(() => router.replace("/"), 900);
-      } else {
-        const emailCodeFactor = signInAttempt.supportedFirstFactors?.find(
-          (factor) => factor.strategy === "email_code",
-        );
-
-        if (!emailCodeFactor) {
-          console.error(JSON.stringify(signInAttempt, null, 2));
+      setErrorMessage(null);
+      setIsSubmitting(true);
+      await startEmailCodeSignIn();
+    } catch (err) {
+      const clerkCode = (err as { errors?: Array<{ code?: string }> })
+        ?.errors?.[0]?.code;
+      const errObj = err as {
+        status?: number;
+        retryAfter?: number;
+        errors?: Array<{ code?: string; message?: string }>;
+      };
+      if (
+        errObj?.status === 429 ||
+        errObj?.errors?.[0]?.code === "too_many_requests"
+      ) {
+        setErrorMessage("Хэт олон хүсэлт илгээгдсэн байна. Түр хүлээгээд дахин оролдоно уу.");
+        return;
+      }
+      if (clerkCode === "session_exists") {
+        try {
+          await signOut();
+          await startEmailCodeSignIn();
+          return;
+        } catch (retryErr) {
+          console.error(JSON.stringify(retryErr, null, 2));
           return;
         }
-
-        await signIn.prepareFirstFactor({
-          strategy: "email_code",
-          emailAddressId: emailCodeFactor.emailAddressId,
-        });
-        setShowEmailCode(true);
       }
-    } catch (err) {
       console.error(JSON.stringify(err, null, 2));
+      const message =
+        errObj?.errors?.[0]?.message ?? "Нэвтрэх үед алдаа гарлаа.";
+      setErrorMessage(message);
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [isLoaded, signIn, setActive, router, emailAddress]);
+  }, [
+    isLoaded,
+    isAuthLoaded,
+    isSignedIn,
+    isSubmitting,
+    signOut,
+    startEmailCodeSignIn,
+    router,
+  ]);
 
   // Handle the submission of the email verification code
   const onVerifyPress = React.useCallback(async () => {
-    if (!isLoaded) return;
+    if (!isLoaded || !isAuthLoaded) return;
+    if (isSignedIn) {
+      await signOut();
+    }
 
     try {
-      const signInAttempt = await signIn.attemptFirstFactor({
+      const { createdSessionId } = await signIn.attemptFirstFactor({
         strategy: "email_code",
         code,
       });
 
-      if (signInAttempt.status === "complete") {
+      console.log("[Verify] createdSessionId:", createdSessionId);
+
+      if (createdSessionId) {
         setShowSuccess(true);
         await setActive({
-          session: signInAttempt.createdSessionId,
+          session: createdSessionId,
         });
-        setTimeout(() => router.replace("/"), 900);
+        console.log("[Verify] setActive done");
+        setTimeout(() => router.replace("/(tabs)/service"), 900);
       } else {
-        console.error(JSON.stringify(signInAttempt, null, 2));
+        console.error("No session created");
       }
+
+      // if (signInAttempt.status === "complete") {
+      //   setShowSuccess(true);
+      //   await setActive({
+      //     session: signInAttempt.createdSessionId,
+      //   });
+      //   setTimeout(() => router.replace("/(tabs)/service"), 900);
+      // } else {
+      //   console.error(JSON.stringify(signInAttempt, null, 2));
+      // }
     } catch (err) {
       console.error(JSON.stringify(err, null, 2));
     }
-  }, [isLoaded, signIn, setActive, router, code]);
+  }, [
+    isLoaded,
+    isAuthLoaded,
+    isSignedIn,
+    signOut,
+    signIn,
+    setActive,
+    router,
+    code,
+  ]);
 
   // Display email code verification form
   if (showEmailCode) {
@@ -155,6 +245,9 @@ export default function Page() {
         <Text style={styles.helper}>
           Бүртгэлээ баталгаажуулахын тулд и-мэйл хаягаа оруулна уу.
         </Text>
+        {!!errorMessage && (
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        )}
 
         <View style={styles.inputWrap}>
           <TextInput
@@ -171,13 +264,15 @@ export default function Page() {
         <Pressable
           style={({ pressed }) => [
             styles.button,
-            !emailAddress && styles.buttonDisabled,
+            (!emailAddress || isSubmitting) && styles.buttonDisabled,
             pressed && styles.buttonPressed,
           ]}
           onPress={onSignInPress}
-          disabled={!emailAddress}
+          disabled={!emailAddress || isSubmitting}
         >
-          <Text style={styles.buttonText}>Үргэлжлүүлэх</Text>
+          <Text style={styles.buttonText}>
+            {isSubmitting ? "Илгээж байна..." : "Үргэлжлүүлэх"}
+          </Text>
         </Pressable>
 
         <View style={styles.linkContainer}>
@@ -236,6 +331,11 @@ const styles = StyleSheet.create({
     color: "#8E8E8E",
     lineHeight: 16,
     marginBottom: 14,
+  },
+  errorText: {
+    fontSize: 12,
+    color: "#DC2626",
+    marginBottom: 8,
   },
   inputWrap: {
     borderWidth: 1,
