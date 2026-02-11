@@ -1,5 +1,6 @@
 import { useAuth } from "@clerk/clerk-expo";
 import { Redirect, Tabs } from "expo-router";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 import Header from "@/components/_tabsComponents/_header/Header";
 import { HapticTab } from "@/components/haptic-tab";
@@ -9,8 +10,18 @@ import { ProfileIcon } from "@/components/icons/profile";
 
 export default function TabLayout() {
   const { isLoaded, isSignedIn } = useAuth();
+  const [authReady, setAuthReady] = useState(false);
 
-  if (!isLoaded) {
+  useEffect(() => {
+    if (!isLoaded) {
+      setAuthReady(false);
+      return;
+    }
+    const timer = setTimeout(() => setAuthReady(true), 250);
+    return () => clearTimeout(timer);
+  }, [isLoaded]);
+
+  if (!isLoaded || !authReady) {
     return null;
   }
 
