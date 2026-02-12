@@ -7,6 +7,7 @@ import { HapticTab } from "@/components/haptic-tab";
 import { UilcilgeeIcon } from "@/components/icons/uilcilgee";
 import { ZahialgaIcon } from "@/components/icons/zahialga";
 import { ProfileIcon } from "@/components/icons/profile";
+import MessageIcon from "@/components/icons/zurwas";
 
 export default function TabLayout() {
   const { isLoaded, isSignedIn } = useAuth();
@@ -59,6 +60,15 @@ export default function TabLayout() {
           options={{
             title: "Захиалга",
             tabBarIcon: ({ color }) => <ZahialgaIcon size={28} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="zurwas"
+          options={{
+            title: "Зурвас",
+            tabBarIcon: ({ color }) => (
+              <MessageIcon width={26} height={26} color={color} />
+            ),
           }}
         />
 

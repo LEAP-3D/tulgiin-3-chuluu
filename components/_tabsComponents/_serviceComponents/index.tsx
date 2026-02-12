@@ -18,6 +18,7 @@ import ShawijustgalIcon from "@/components/icons/_serviceIcons/shawijustgalIcon"
 import HalaaltIcon from "@/components/icons/_serviceIcons/halaaltIcon";
 import InternetIcon from "@/components/icons/_serviceIcons/internetIcon";
 import SparklesIcon from "@/components/icons/_serviceIcons/sparklesIcon";
+import ScreenShotIcon from "@/components/icons/screenshot";
 
 const services = [
   { key: "electric", label: "Цахилгаан", Icon: TsahilgaanIcon },
@@ -147,15 +148,8 @@ export default function ServiceScreen() {
                     {item.tail}
                   </Text>
                 </View>
-                <View style={styles.phoneWrap}>
-                  <View style={styles.phone}>
-                    <View style={styles.phoneNotch} />
-                    <View style={styles.phoneScreen}>
-                      <View style={styles.phoneHeader} />
-                      <View style={styles.phoneRow} />
-                      <View style={styles.phoneRowSmall} />
-                    </View>
-                  </View>
+                <View style={styles.screenshotWrap}>
+                  <ScreenShotIcon width={140} height={180} />
                 </View>
               </View>
             ))}
@@ -247,7 +241,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   promoText: {
-    paddingRight: 120,
+    paddingRight: 150,
   },
   promoTitle: {
     fontSize: 18,
@@ -258,52 +252,10 @@ const styles = StyleSheet.create({
   promoAccent: {
     color: "#F59E0B",
   },
-  phoneWrap: {
+  screenshotWrap: {
     position: "absolute",
-    right: 14,
-    bottom: -8,
-  },
-  phone: {
-    width: 120,
-    height: 210,
-    borderRadius: 22,
-    borderWidth: 2,
-    borderColor: "#E6E6E6",
-    backgroundColor: "#FFFFFF",
-    padding: 8,
-  },
-  phoneNotch: {
-    position: "absolute",
-    top: 8,
-    alignSelf: "center",
-    width: 46,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: "#1A1A1A",
-  },
-  phoneScreen: {
-    flex: 1,
-    borderRadius: 14,
-    backgroundColor: "#F2F2F2",
-    paddingTop: 22,
-    paddingHorizontal: 6,
-  },
-  phoneHeader: {
-    height: 10,
-    borderRadius: 4,
-    backgroundColor: "#E0E0E0",
-    marginBottom: 10,
-  },
-  phoneRow: {
-    height: 56,
-    borderRadius: 10,
-    backgroundColor: "#FFFFFF",
-    marginBottom: 10,
-  },
-  phoneRowSmall: {
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: "#FFFFFF",
+    right: 8,
+    bottom: -14,
   },
   dots: {
     flexDirection: "row",
