@@ -29,16 +29,66 @@ function getClerkErrorMessage(err: unknown, fallback: string): string {
 export default function Page() {
   const { isLoaded, signUp, setActive } = useSignUp();
   const router = useRouter();
+  const apiBaseUrl =
+    process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:3000";
 
   const [emailAddress, setEmailAddress] = React.useState("");
   const [firstName, setFirstName] = React.useState("");
   const [lastName, setLastName] = React.useState("");
+  const [phoneNumber, setPhoneNumber] = React.useState("");
+  const [userType, setUserType] = React.useState<"user" | "worker" | null>(null);
+  const [workTypes, setWorkTypes] = React.useState<string[]>([]);
+  const [serviceAreas, setServiceAreas] = React.useState<string[]>([]);
   const [pendingVerification, setPendingVerification] = React.useState(false);
   const [code, setCode] = React.useState("");
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [debugInfo, setDebugInfo] = React.useState<string | null>(null);
   const codeInputRef = React.useRef<TextInput>(null);
   const [showSuccess, setShowSuccess] = React.useState(false);
+  const [formStep, setFormStep] = React.useState<
+    "role" | "details" | "personal"
+  >("role");
+
+  const createProfile = React.useCallback(async () => {
+    const response = await fetch(`${apiBaseUrl}/profiles`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        role: userType ?? "user",
+        email: emailAddress.trim(),
+        phone_number: phoneNumber.trim(),
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        work_types:
+          userType === "worker" && workTypes.length > 0 ? workTypes : undefined,
+        service_area:
+          userType === "worker" && serviceAreas.length > 0
+            ? serviceAreas
+            : undefined,
+      }),
+    });
+
+    if (!response.ok) {
+      const contentType = response.headers.get("content-type") ?? "";
+      const payload = contentType.includes("application/json")
+        ? await response.json().catch(() => null)
+        : await response.text().catch(() => "");
+      const message =
+        (typeof payload === "string" && payload.trim()) ||
+        payload?.error ||
+        `HTTP ${response.status}`;
+      throw new Error(message);
+    }
+  }, [
+    apiBaseUrl,
+    emailAddress,
+    phoneNumber,
+    firstName,
+    lastName,
+    userType,
+    workTypes,
+    serviceAreas,
+  ]);
 
   const onSignUpPress = async () => {
     if (!isLoaded) return;
@@ -50,6 +100,12 @@ export default function Page() {
         emailAddress: emailAddress.trim(),
         firstName: firstName.trim(),
         lastName: lastName.trim(),
+        unsafeMetadata: {
+          role: userType ?? undefined,
+          phoneNumber: phoneNumber.trim() || undefined,
+          workTypes: userType === "worker" ? workTypes : undefined,
+          serviceAreas: userType === "worker" ? serviceAreas : undefined,
+        },
       });
 
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
@@ -78,6 +134,18 @@ export default function Page() {
       });
 
       if (signUpAttempt.status === "complete") {
+        try {
+          await createProfile();
+        } catch (err) {
+          console.error("Create profile failed:", err);
+          setErrorMessage(
+            getClerkErrorMessage(
+              err,
+              "Database рүү хадгалах үед алдаа гарлаа.",
+            ),
+          );
+          return;
+        }
         setShowSuccess(true);
         await setActive({ session: signUpAttempt.createdSessionId });
         setTimeout(() => router.replace("/(tabs)/service"), 900);
@@ -130,14 +198,51 @@ export default function Page() {
 
   return (
     <SignUpFormStep
+      step={formStep}
       firstName={firstName}
       lastName={lastName}
       emailAddress={emailAddress}
+      phoneNumber={phoneNumber}
+      userType={userType}
+      workTypes={workTypes}
+      serviceAreas={serviceAreas}
       errorMessage={errorMessage}
       debugInfo={debugInfo}
       showSuccess={showSuccess}
+      onBackStep={() =>
+        setFormStep((prev) => (prev === "personal" ? "details" : "role"))
+      }
+      onNextStep={() =>
+        setFormStep((prev) => {
+          if (prev === "role") return "details";
+          if (prev === "details" && userType === "worker") return "personal";
+          return prev;
+        })
+      }
+      onChangeUserType={(value) => {
+        setUserType(value);
+        if (value !== "worker") {
+          setWorkTypes([]);
+          setServiceAreas([]);
+        }
+      }}
+      onToggleWorkType={(value) =>
+        setWorkTypes((prev) =>
+          prev.includes(value)
+            ? prev.filter((item) => item !== value)
+            : [...prev, value],
+        )
+      }
+      onToggleServiceArea={(value) =>
+        setServiceAreas((prev) =>
+          prev.includes(value)
+            ? prev.filter((item) => item !== value)
+            : [...prev, value],
+        )
+      }
       onChangeFirstName={setFirstName}
       onChangeLastName={setLastName}
+      onChangePhone={(value) => setPhoneNumber(value.replace(/\D/g, ""))}
       onChangeEmail={setEmailAddress}
       onSubmit={onSignUpPress}
     />
