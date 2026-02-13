@@ -46,7 +46,7 @@ export default function Page() {
   const codeInputRef = React.useRef<TextInput>(null);
   const [showSuccess, setShowSuccess] = React.useState(false);
   const [formStep, setFormStep] = React.useState<
-    "role" | "details" | "area" | "personal"
+    "role" | "details" | "personal"
   >("role");
 
   const createProfile = React.useCallback(async () => {
@@ -210,17 +210,12 @@ export default function Page() {
       debugInfo={debugInfo}
       showSuccess={showSuccess}
       onBackStep={() =>
-        setFormStep((prev) => {
-          if (prev === "personal") return "area";
-          if (prev === "area") return "details";
-          return "role";
-        })
+        setFormStep((prev) => (prev === "personal" ? "details" : "role"))
       }
       onNextStep={() =>
         setFormStep((prev) => {
           if (prev === "role") return "details";
-          if (prev === "details" && userType === "worker") return "area";
-          if (prev === "area") return "personal";
+          if (prev === "details" && userType === "worker") return "personal";
           return prev;
         })
       }
