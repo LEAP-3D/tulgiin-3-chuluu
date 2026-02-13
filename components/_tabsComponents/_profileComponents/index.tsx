@@ -4,6 +4,22 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { styles } from "./index.styles";
 import { Divider, FieldRow, MenuRow } from "./primitives";
+import TsahilgaanIcon from "@/components/icons/_serviceIcons/tsahilgaanIcon";
+import SantehnikIcon from "@/components/icons/_serviceIcons/santehnikIcon";
+import TsoojIcon from "@/components/icons/_serviceIcons/tsoojIcon";
+import BudagIcon from "@/components/icons/_serviceIcons/budagIcon";
+import MujaanIcon from "@/components/icons/_serviceIcons/mujaanIcon";
+import ShawijUstgalIcon from "@/components/icons/_serviceIcons/shawijustgalIcon";
+import ShalIcon from "@/components/icons/_serviceIcons/shalIcon";
+import HalaaltIcon from "@/components/icons/_serviceIcons/halaaltIcon";
+import AgaarjuulaltIcon from "@/components/icons/_serviceIcons/agaarjuulaltIcon";
+import NvvlgeltIcon from "@/components/icons/_serviceIcons/nvvlgeltIcon";
+import AyulgviBaidalIcon from "@/components/icons/_serviceIcons/ayulgvibaidalIcon";
+import InternetIcon from "@/components/icons/_serviceIcons/internetIcon";
+import ShilToliIcon from "@/components/icons/_serviceIcons/shiltoliIcon";
+import DeewerIcon from "@/components/icons/_serviceIcons/deewerIcon";
+import TawilgaIcon from "@/components/icons/_serviceIcons/tawilgaIcon";
+import GadnaTalbaiIcon from "@/components/icons/_serviceIcons/gadnatalbaiIcon";
 
 type Props = {
   profile: ProfileData;
@@ -20,6 +36,8 @@ export type ProfileData = {
   firstName: string;
   email: string;
   phone: string;
+  workTypes?: string[];
+  serviceAreas?: string[];
   avatarUrl?: string;
   displayName?: string;
 };
@@ -28,6 +46,31 @@ export type ProfileField = keyof Pick<
   ProfileData,
   "lastName" | "firstName" | "email" | "phone"
 >;
+
+const workTypeIconMap: Record<string, React.ComponentType<any>> = {
+  "Цахилгаан": TsahilgaanIcon,
+  "Цахилгаанчин": TsahilgaanIcon,
+  "Сантехник": SantehnikIcon,
+  "Сантехникч": SantehnikIcon,
+  "Цоож": TsoojIcon,
+  "Цоож, хаалга засвар": TsoojIcon,
+  "Будаг": BudagIcon,
+  "Будагчин": BudagIcon,
+  "Мужаан": MujaanIcon,
+  "Ариутгал": ShawijUstgalIcon,
+  "Шал": ShalIcon,
+  "Халаалт": HalaaltIcon,
+  "Агааржуулалт": AgaarjuulaltIcon,
+  "Нүүлгэлт": NvvlgeltIcon,
+  "Аюулгүй байдал": AyulgviBaidalIcon,
+  "Интернет": InternetIcon,
+  "Интернет засвар": InternetIcon,
+  "Шил, толь": ShilToliIcon,
+  "Дээвэр": DeewerIcon,
+  "Тавилга": TawilgaIcon,
+  "Тавилга угсралт": TawilgaIcon,
+  "Гадна талбай": GadnaTalbaiIcon,
+};
 
 export default function ProfileScreen({
   profile,
@@ -107,6 +150,42 @@ export default function ProfileScreen({
             />
           </View>
 
+          {profile.workTypes && profile.workTypes.length > 0 ? (
+            <View style={styles.chipSection}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Мэргэжил</Text>
+                <Text style={styles.sectionAction}>Засах</Text>
+              </View>
+              <View style={styles.chipWrap}>
+                {profile.workTypes.map((item) => {
+                  const Icon = workTypeIconMap[item];
+                  return (
+                    <View key={`work-${item}`} style={styles.chip}>
+                      {Icon ? <Icon width={18} height={18} /> : null}
+                      <Text style={styles.chipText}>{item}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+          ) : null}
+
+          {profile.serviceAreas && profile.serviceAreas.length > 0 ? (
+            <View style={styles.chipSection}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Үйлчилгээний бүс</Text>
+                <Text style={styles.sectionAction}>Засах</Text>
+              </View>
+              <View style={styles.chipWrap}>
+                {profile.serviceAreas.map((item) => (
+                  <View key={`area-${item}`} style={styles.chip}>
+                    <Text style={styles.chipText}>{item}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          ) : null}
+
           <Pressable
             style={({ pressed }) => [
               styles.saveBtnDark,
@@ -126,12 +205,17 @@ export default function ProfileScreen({
           <Pressable style={styles.profileCard} onPress={onEditPress}>
             <View style={styles.profileRow}>
               <View style={styles.avatarMini}>
-                <Ionicons name="person" size={18} color="#8B8B8B" />
+                {profile.avatarUrl ? (
+                  <Image source={{ uri: profile.avatarUrl }} style={styles.avatarImage} />
+                ) : (
+                  <Ionicons name="person" size={18} color="#8B8B8B" />
+                )}
               </View>
               <Text style={styles.profileName}>
-                {profile.displayName ??
-                  ([profile.lastName, profile.firstName].filter(Boolean).join(" ").trim() ||
-                    "Хэрэглэгч")}
+                {profile.firstName?.trim() ||
+                  profile.displayName ||
+                  [profile.lastName, profile.firstName].filter(Boolean).join(" ").trim() ||
+                  "Хэрэглэгч"}
               </Text>
             </View>
             <Ionicons name="pencil-outline" size={18} color="#6B6B6B" />
