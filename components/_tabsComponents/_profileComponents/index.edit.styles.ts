@@ -54,6 +54,16 @@ export const editStyles = {
     borderColor: "#E6E6E6",
     paddingHorizontal: 10,
   },
+  inputCardError: {
+    borderColor: "#D44A4A",
+  },
+  errorText: {
+    marginTop: 6,
+    marginBottom: 4,
+    fontSize: 12,
+    color: "#D44A4A",
+    fontWeight: "500",
+  },
   row: {
     flexDirection: "row",
     alignItems: "center",

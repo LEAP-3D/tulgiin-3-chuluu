@@ -28,7 +28,13 @@ type Props = {
   onEditPress?: () => void;
   onSavePress?: () => void;
   onLogoutPress?: () => void;
+  onNotificationsPress?: () => void;
+  onCardLinkPress?: () => void;
+  onHelpPress?: () => void;
+  onComplaintPress?: () => void;
   isSaving?: boolean;
+  errors?: ProfileErrors;
+  showErrors?: boolean;
 };
 
 export type ProfileData = {
@@ -46,6 +52,13 @@ export type ProfileField = keyof Pick<
   ProfileData,
   "lastName" | "firstName" | "email" | "phone"
 >;
+
+export type ProfileErrors = {
+  lastName?: string;
+  firstName?: string;
+  email?: string;
+  phone?: string;
+};
 
 const workTypeIconMap: Record<string, React.ComponentType<any>> = {
   "Цахилгаан": TsahilgaanIcon,
@@ -79,7 +92,13 @@ export default function ProfileScreen({
   onEditPress,
   onSavePress,
   onLogoutPress,
+  onNotificationsPress,
+  onCardLinkPress,
+  onHelpPress,
+  onComplaintPress,
   isSaving,
+  errors,
+  showErrors,
 }: Props) {
   return (
     <SafeAreaView style={styles.safe} edges={["left", "right", "bottom"]}>
@@ -108,23 +127,51 @@ export default function ProfileScreen({
             </View>
           </View>
 
-          <Text style={styles.inputLabel}>Овог нэр</Text>
-          <View style={styles.inputCard}>
+          <Text style={styles.inputLabel}>Овог</Text>
+          <View
+            style={[
+              styles.inputCard,
+              showErrors && errors?.lastName && styles.inputCardError,
+            ]}
+          >
             <FieldRow
               icon={<Ionicons name="person-outline" size={18} color="#8B8B8B" />}
-              placeholder="Хэрэглэгч"
-              value={[profile.lastName, profile.firstName].filter(Boolean).join(" ").trim()}
-              onChangeText={(value) => {
-                const parts = value.trim().split(/\s+/);
-                onChangeField("lastName", parts[0] ?? "");
-                onChangeField("firstName", parts.slice(1).join(" "));
-              }}
+              placeholder="Овог"
+              value={profile.lastName}
+              onChangeText={(value) => onChangeField("lastName", value)}
               editable
             />
           </View>
+          {showErrors && errors?.lastName ? (
+            <Text style={styles.errorText}>{errors.lastName}</Text>
+          ) : null}
+
+          <Text style={styles.inputLabel}>Нэр</Text>
+          <View
+            style={[
+              styles.inputCard,
+              showErrors && errors?.firstName && styles.inputCardError,
+            ]}
+          >
+            <FieldRow
+              icon={<Ionicons name="person-outline" size={18} color="#8B8B8B" />}
+              placeholder="Нэр"
+              value={profile.firstName}
+              onChangeText={(value) => onChangeField("firstName", value)}
+              editable
+            />
+          </View>
+          {showErrors && errors?.firstName ? (
+            <Text style={styles.errorText}>{errors.firstName}</Text>
+          ) : null}
 
           <Text style={styles.inputLabel}>И-Мэйл хаяг</Text>
-          <View style={styles.inputCard}>
+          <View
+            style={[
+              styles.inputCard,
+              showErrors && errors?.email && styles.inputCardError,
+            ]}
+          >
             <FieldRow
               icon={<Ionicons name="mail-outline" size={18} color="#8B8B8B" />}
               placeholder="somequiett@gmail.com"
@@ -134,9 +181,17 @@ export default function ProfileScreen({
               keyboardType="default"
             />
           </View>
+          {showErrors && errors?.email ? (
+            <Text style={styles.errorText}>{errors.email}</Text>
+          ) : null}
 
           <Text style={styles.inputLabel}>Утасны дугаар</Text>
-          <View style={styles.inputCard}>
+          <View
+            style={[
+              styles.inputCard,
+              showErrors && errors?.phone && styles.inputCardError,
+            ]}
+          >
             <FieldRow
               icon={<Ionicons name="call-outline" size={18} color="#8B8B8B" />}
               placeholder="88888888"
@@ -149,6 +204,9 @@ export default function ProfileScreen({
               autoComplete="tel"
             />
           </View>
+          {showErrors && errors?.phone ? (
+            <Text style={styles.errorText}>{errors.phone}</Text>
+          ) : null}
 
           {profile.workTypes && profile.workTypes.length > 0 ? (
             <View style={styles.chipSection}>
@@ -236,15 +294,19 @@ export default function ProfileScreen({
           <View style={styles.menuCard}>
             <MenuRow icon="person-outline" label="Хувийн тохиргоо" onPress={onEditPress} />
             <Divider />
-            <MenuRow icon="notifications-outline" label="Мэдэгдэл" />
+            <MenuRow
+              icon="notifications-outline"
+              label="Мэдэгдэл"
+              onPress={onNotificationsPress}
+            />
             <Divider />
-            <MenuRow icon="card-outline" label="Карт холбох" />
+            <MenuRow icon="card-outline" label="Карт холбох" onPress={onCardLinkPress} />
           </View>
 
           <View style={styles.menuCard}>
-            <MenuRow icon="help-circle-outline" label="Тусламж" />
+            <MenuRow icon="help-circle-outline" label="Тусламж" onPress={onHelpPress} />
             <Divider />
-            <MenuRow icon="flag-outline" label="Гомдол" />
+            <MenuRow icon="flag-outline" label="Гомдол" onPress={onComplaintPress} />
           </View>
 
           <Pressable
