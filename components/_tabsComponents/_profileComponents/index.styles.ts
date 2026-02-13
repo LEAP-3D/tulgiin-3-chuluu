@@ -27,12 +27,17 @@ export const styles = StyleSheet.create({
     gap: 10,
   },
   avatarMini: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     backgroundColor: "#EDEDED",
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
   },
   profileName: {
     fontSize: 15,
@@ -71,6 +76,46 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     color: "#8E8E8E",
     lineHeight: 16,
+  },
+  chipSection: {
+    marginTop: 6,
+    gap: 10,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1F1F1F",
+  },
+  sectionAction: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#F18A2B",
+  },
+  chipWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "#F18A2B",
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: "#FFFFFF",
+  },
+  chipText: {
+    fontSize: 13,
+    color: "#1F1F1F",
+    fontWeight: "500",
   },
   menuCard: {
     backgroundColor: "#FFFFFF",
