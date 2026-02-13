@@ -1,0 +1,191 @@
+import { StyleSheet } from "react-native";
+
+export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#EAEAEA",
+  },
+  content: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 18,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1F1F1F",
+  },
+  profileRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  avatar: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: "#F2F2F2",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  name: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#1F1F1F",
+  },
+  subtitle: {
+    marginTop: 4,
+    fontSize: 13,
+    color: "#7A7A7A",
+    fontWeight: "600",
+  },
+  rating: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  ratingText: {
+    marginLeft: 6,
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1F1F1F",
+  },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  infoLabel: {
+    fontSize: 13,
+    color: "#7A7A7A",
+    fontWeight: "600",
+  },
+  infoValue: {
+    fontSize: 13,
+    color: "#1F1F1F",
+    fontWeight: "600",
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1F1F1F",
+    marginTop: 18,
+    marginBottom: 12,
+  },
+  chipRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+    borderRadius: 18,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: "#FFFFFF",
+  },
+  chipIconWrap: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: "#FFF6EC",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
+  },
+  chipText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#1F1F1F",
+  },
+  reviewHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  reviewAll: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1F1F1F",
+  },
+  reviewCard: {
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 12,
+  },
+  reviewTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  reviewAvatar: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: "#EDEDED",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+  reviewAvatarText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1F1F1F",
+  },
+  reviewTitleBlock: {
+    flex: 1,
+  },
+  reviewAuthor: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1F1F1F",
+  },
+  reviewText: {
+    fontSize: 13,
+    color: "#1F1F1F",
+    fontWeight: "500",
+    lineHeight: 18,
+  },
+  reviewDate: {
+    marginTop: 6,
+    fontSize: 12,
+    color: "#7A7A7A",
+    fontWeight: "600",
+  },
+  selectButton: {
+    marginTop: 12,
+    height: 50,
+    borderRadius: 14,
+    backgroundColor: "#000000",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  selectText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+});

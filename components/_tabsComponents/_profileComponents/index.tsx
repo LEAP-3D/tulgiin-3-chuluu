@@ -1,16 +1,9 @@
 import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  TextInput,
-  Image,
-  ScrollView,
-  Alert,
-} from "react-native";
+import { View, Text, Pressable, Image, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { styles } from "./index.styles";
+import { Divider, FieldRow, MenuRow } from "./primitives";
 
 type Props = {
   profile: ProfileData;
@@ -77,16 +70,11 @@ export default function ProfileScreen({
             <FieldRow
               icon={<Ionicons name="person-outline" size={18} color="#8B8B8B" />}
               placeholder="Хэрэглэгч"
-              value={[profile.lastName, profile.firstName]
-                .filter(Boolean)
-                .join(" ")
-                .trim()}
+              value={[profile.lastName, profile.firstName].filter(Boolean).join(" ").trim()}
               onChangeText={(value) => {
                 const parts = value.trim().split(/\s+/);
-                const nextLast = parts[0] ?? "";
-                const nextFirst = parts.slice(1).join(" ");
-                onChangeField("lastName", nextLast);
-                onChangeField("firstName", nextFirst);
+                onChangeField("lastName", parts[0] ?? "");
+                onChangeField("firstName", parts.slice(1).join(" "));
               }}
               editable
             />
@@ -142,10 +130,8 @@ export default function ProfileScreen({
               </View>
               <Text style={styles.profileName}>
                 {profile.displayName ??
-                  ([profile.lastName, profile.firstName]
-                    .filter(Boolean)
-                    .join(" ")
-                    .trim() || "Хэрэглэгч")}
+                  ([profile.lastName, profile.firstName].filter(Boolean).join(" ").trim() ||
+                    "Хэрэглэгч")}
               </Text>
             </View>
             <Ionicons name="pencil-outline" size={18} color="#6B6B6B" />
@@ -164,11 +150,7 @@ export default function ProfileScreen({
           </Pressable>
 
           <View style={styles.menuCard}>
-            <MenuRow
-              icon="person-outline"
-              label="Хувийн тохиргоо"
-              onPress={onEditPress}
-            />
+            <MenuRow icon="person-outline" label="Хувийн тохиргоо" onPress={onEditPress} />
             <Divider />
             <MenuRow icon="notifications-outline" label="Мэдэгдэл" />
             <Divider />
@@ -183,9 +165,7 @@ export default function ProfileScreen({
 
           <Pressable
             style={styles.logoutCard}
-            onPress={
-              onLogoutPress ?? (() => Alert.alert("Гарах", "Logout pressed"))
-            }
+            onPress={onLogoutPress ?? (() => Alert.alert("Гарах", "Logout pressed"))}
           >
             <View style={styles.logoutIcon}>
               <Ionicons name="log-out-outline" size={18} color="#D44A4A" />
@@ -195,274 +175,5 @@ export default function ProfileScreen({
         </ScrollView>
       )}
     </SafeAreaView>
-  );
-}
-
-function FieldRow({
-  icon,
-  placeholder,
-  value,
-  onChangeText,
-  editable,
-  keyboardType,
-  inputMode,
-  textContentType,
-  autoComplete,
-}: {
-  icon: React.ReactNode;
-  placeholder: string;
-  value: string;
-  onChangeText: (value: string) => void;
-  editable: boolean;
-  keyboardType?: "default" | "phone-pad";
-  inputMode?: "text" | "tel" | "numeric";
-  textContentType?: "none" | "telephoneNumber";
-  autoComplete?: "off" | "tel";
-}) {
-  return (
-    <View style={styles.row}>
-      <View style={styles.leftIcon}>{icon}</View>
-      <TextInput
-        placeholder={placeholder}
-  placeholderTextColor="#9AA0A6"
-        style={styles.input}
-        keyboardType={keyboardType ?? "default"}
-        inputMode={inputMode}
-        textContentType={textContentType}
-        autoComplete={autoComplete}
-        value={value}
-        onChangeText={onChangeText}
-        editable={editable}
-        selectTextOnFocus={editable}
-      />
-    </View>
-  );
-}
-
-function Divider() {
-  return <View style={styles.divider} />;
-}
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#F6F7FB" },
-  container: {
-    padding: 16,
-    paddingTop: 30,
-    paddingBottom: 28,
-    marginTop: 0,
-    gap: 12,
-  },
-
-  profileCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    borderWidth: 1,
-    borderColor: "#E8E8E8",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  profileRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  avatarMini: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#EDEDED",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  profileName: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#1F1F1F",
-  },
-  infoCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    borderWidth: 1,
-    borderColor: "#E8E8E8",
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 12,
-  },
-  infoIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#F6F6F6",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  infoTextWrap: {
-    flex: 1,
-  },
-  infoTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1F1F1F",
-    marginBottom: 4,
-  },
-  infoDesc: {
-    fontSize: 12,
-    color: "#8E8E8E",
-    lineHeight: 16,
-  },
-  menuCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#E8E8E8",
-    overflow: "hidden",
-  },
-  menuRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  menuLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  menuText: {
-    fontSize: 14,
-    color: "#1F1F1F",
-    fontWeight: "500",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#EFEFEF",
-    marginLeft: 44,
-  },
-  logoutCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: "#E8E8E8",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  logoutIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 10,
-    backgroundColor: "#FDECEC",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  logoutTextAlt: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1F1F1F",
-  },
-
-  editContainer: {
-    padding: 16,
-    paddingTop: 30,
-    paddingBottom: 28,
-    marginTop: 0,
-  },
-  backRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 14,
-  },
-  backTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1F1F1F",
-  },
-  editAvatarWrap: {
-    alignSelf: "center",
-    width: 76,
-    height: 76,
-    borderRadius: 38,
-    backgroundColor: "#EDEDED",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 16,
-  },
-  editAvatar: { width: 72, height: 72, borderRadius: 36 },
-  cameraBadge: {
-    position: "absolute",
-    right: -2,
-    bottom: -2,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: "#FFFFFF",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#111",
-  },
-  inputLabel: {
-    fontSize: 13,
-    color: "#1F1F1F",
-    fontWeight: "600",
-    marginBottom: 6,
-    marginTop: 6,
-  },
-  inputCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#E6E6E6",
-    paddingHorizontal: 10,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 6,
-    paddingVertical: 12,
-  },
-  leftIcon: { width: 30, alignItems: "center" },
-  input: {
-    flex: 1,
-    fontSize: 14,
-    color: "#111",
-    paddingVertical: 0,
-  },
-  saveBtnDark: {
-    marginTop: 18,
-    backgroundColor: "#111111",
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  saveTextDark: { color: "#FFFFFF", fontSize: 14, fontWeight: "600" },
-});
-
-function MenuRow({
-  icon,
-  label,
-  onPress,
-}: {
-  icon: React.ComponentProps<typeof Ionicons>["name"];
-  label: string;
-  onPress?: () => void;
-}) {
-  return (
-    <Pressable style={styles.menuRow} onPress={onPress}>
-      <View style={styles.menuLeft}>
-        <Ionicons name={icon} size={18} color="#111" />
-        <Text style={styles.menuText}>{label}</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={18} color="#B0B0B0" />
-    </Pressable>
   );
 }
