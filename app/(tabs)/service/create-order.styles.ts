@@ -83,6 +83,21 @@ export const styles = StyleSheet.create({
   placeholderText: {
     color: "#A3A3A3",
   },
+  inputError: {
+    borderColor: "#D44A4A",
+  },
+  errorText: {
+    marginTop: -6,
+    marginBottom: 8,
+    fontSize: 12,
+    color: "#D44A4A",
+  },
+  errorTextBelow: {
+    marginTop: 8,
+    marginBottom: 0,
+    fontSize: 12,
+    color: "#D44A4A",
+  },
   selectInput: {
     flexDirection: "row",
     alignItems: "center",
@@ -229,9 +244,82 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  submitButtonSelected: {
+    backgroundColor: "#F59E0B",
+  },
   submitText: {
     fontSize: 16,
     fontWeight: "700",
     color: "#FFFFFF",
+  },
+  workerCard: {
+    borderWidth: 1,
+    borderColor: "#EAEAEA",
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 8,
+    backgroundColor: "#FFFFFF",
+  },
+  workerTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  workerAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#F1F1F1",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+    overflow: "hidden",
+  },
+  workerAvatarImage: {
+    width: "100%",
+    height: "100%",
+  },
+  workerTitleBlock: {
+    flex: 1,
+  },
+  workerName: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1F1F1F",
+  },
+  workerSubtitle: {
+    marginTop: 4,
+    fontSize: 13,
+    color: "#7A7A7A",
+    fontWeight: "600",
+  },
+  workerRating: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  workerRatingText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1F1F1F",
+  },
+  workerInfoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 6,
+    gap: 12,
+  },
+  workerInfoLabel: {
+    fontSize: 13,
+    color: "#7A7A7A",
+    fontWeight: "600",
+    flex: 1,
+  },
+  workerInfoValue: {
+    fontSize: 13,
+    color: "#1F1F1F",
+    fontWeight: "600",
+    textAlign: "right",
+    flex: 1,
   },
 });

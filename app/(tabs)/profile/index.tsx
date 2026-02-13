@@ -30,6 +30,36 @@ const normalizeList = (value: unknown): string[] => {
   return [];
 };
 
+const workTypeLabelToKey: Record<string, string> = {
+  "Цахилгаан": "electric",
+  "Цахилгаанчин": "electric",
+  "Сантехник": "plumbing",
+  "Сантехникч": "plumbing",
+  "Цоож": "lock",
+  "Цоож, хаалга засвар": "lock",
+  "Будаг": "paint",
+  "Будагчин": "paint",
+  "Мужаан": "carpenter",
+  "Ариутгал": "clean",
+  "Шал": "floor",
+  "Халаалт": "heat",
+  "Агааржуулалт": "ac",
+  "Нүүлгэлт": "moving",
+  "Аюулгүй байдал": "security",
+  "Интернет": "internet",
+  "Интернет засвар": "internet",
+  "Шил, толь": "glass",
+  "Дээвэр": "roof",
+  "Тавилга": "furniture",
+  "Тавилга угсралт": "furniture",
+  "Гадна талбай": "garden",
+};
+
+const normalizeWorkTypes = (value: unknown): string[] => {
+  const list = normalizeList(value);
+  return list.map((item) => workTypeLabelToKey[item] ?? item);
+};
+
 export default function TabTwoScreen() {
   const router = useRouter();
   const { user, isLoaded: isUserLoaded } = useUser();
@@ -91,7 +121,7 @@ export default function TabTwoScreen() {
           firstName: data.first_name ?? prev.firstName,
           email: data.email ?? prev.email,
           phone: data.phone_number ?? prev.phone,
-          workTypes: normalizeList(data.work_types),
+          workTypes: normalizeWorkTypes(data.work_types),
           serviceAreas: normalizeList(data.service_area),
         }));
       } catch (err) {
@@ -196,7 +226,7 @@ export default function TabTwoScreen() {
           firstName: data.first_name ?? prev.firstName,
           email: data.email ?? prev.email,
           phone: data.phone_number ?? prev.phone,
-          workTypes: normalizeList(data.work_types ?? prev.workTypes),
+          workTypes: normalizeWorkTypes(data.work_types ?? prev.workTypes),
           serviceAreas: normalizeList(data.service_area ?? prev.serviceAreas),
         }));
       }

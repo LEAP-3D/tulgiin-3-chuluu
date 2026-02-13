@@ -197,12 +197,12 @@ export function SignUpFormStep({
             </Text>
             <View style={styles.chipGroup}>
               {professionOptions.map((item) => {
-                const selected = workTypes.includes(item.label);
+                const selected = workTypes.includes(item.key);
                 return (
                   <Pressable
                     key={item.key}
                     style={[styles.chip, selected && styles.chipActive]}
-                    onPress={() => onToggleWorkType(item.label)}
+                    onPress={() => onToggleWorkType(item.key)}
                   >
                     <item.Icon width={18} height={18} />
                     <Text
