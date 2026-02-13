@@ -35,6 +35,73 @@ export const styles = StyleSheet.create({
     lineHeight: 16,
     marginBottom: 14,
   },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1F1F1F",
+    marginTop: 12,
+    marginBottom: 6,
+  },
+  fieldLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#1F1F1F",
+    marginBottom: 6,
+  },
+  roleGroup: {
+    marginBottom: 12,
+  },
+  roleButton: {
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: "center",
+    marginBottom: 10,
+    backgroundColor: "#FFFFFF",
+  },
+  roleButtonActive: {
+    borderColor: "#F59E0B",
+    backgroundColor: "rgba(245, 158, 11, 0.08)",
+  },
+  roleButtonText: {
+    fontSize: 14,
+    color: "#1F1F1F",
+    fontWeight: "600",
+  },
+  roleButtonTextActive: {
+    color: "#F59E0B",
+  },
+  chipGroup: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 10,
+  },
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: "#FFFFFF",
+  },
+  chipActive: {
+    borderColor: "#F59E0B",
+    backgroundColor: "rgba(245, 158, 11, 0.12)",
+  },
+  chipText: {
+    fontSize: 12,
+    color: "#1F1F1F",
+    fontWeight: "500",
+  },
+  chipTextActive: {
+    color: "#F59E0B",
+    fontWeight: "700",
+  },
   inputWrap: {
     borderWidth: 1,
     borderColor: "#E5E5E5",
