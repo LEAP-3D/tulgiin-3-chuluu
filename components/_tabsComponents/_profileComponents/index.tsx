@@ -61,6 +61,22 @@ export type ProfileErrors = {
 };
 
 const workTypeIconMap: Record<string, React.ComponentType<any>> = {
+  electric: TsahilgaanIcon,
+  plumbing: SantehnikIcon,
+  lock: TsoojIcon,
+  paint: BudagIcon,
+  carpenter: MujaanIcon,
+  clean: ShawijUstgalIcon,
+  floor: ShalIcon,
+  heat: HalaaltIcon,
+  ac: AgaarjuulaltIcon,
+  moving: NvvlgeltIcon,
+  security: AyulgviBaidalIcon,
+  internet: InternetIcon,
+  glass: ShilToliIcon,
+  roof: DeewerIcon,
+  furniture: TawilgaIcon,
+  garden: GadnaTalbaiIcon,
   "Цахилгаан": TsahilgaanIcon,
   "Цахилгаанчин": TsahilgaanIcon,
   "Сантехник": SantehnikIcon,
@@ -84,6 +100,49 @@ const workTypeIconMap: Record<string, React.ComponentType<any>> = {
   "Тавилга угсралт": TawilgaIcon,
   "Гадна талбай": GadnaTalbaiIcon,
 };
+
+const workTypeLabelMap: Record<string, string> = {
+  electric: "Цахилгаан",
+  plumbing: "Сантехник",
+  lock: "Цоож, хаалга засвар",
+  paint: "Будаг",
+  carpenter: "Мужаан",
+  clean: "Ариутгал",
+  floor: "Шал",
+  heat: "Халаалт",
+  ac: "Агааржуулалт",
+  moving: "Нүүлгэлт",
+  security: "Аюулгүй байдал",
+  internet: "Интернет засвар",
+  glass: "Шил, толь",
+  roof: "Дээвэр",
+  furniture: "Тавилга угсралт",
+  garden: "Гадна талбай",
+};
+
+const districtShortMap: Record<string, string> = {
+  "Баянзүрх": "БЗД",
+  "Баянзүрх дүүрэг": "БЗД",
+  "Сонгинохайрхан": "СХД",
+  "Сонгинохайрхан дүүрэг": "СХД",
+  "Чингэлтэй": "ЧД",
+  "Чингэлтэй дүүрэг": "ЧД",
+  "Сүхбаатар": "СБД",
+  "Сүхбаатар дүүрэг": "СБД",
+  "Хан-Уул": "ХУД",
+  "Хан-Уул дүүрэг": "ХУД",
+  "Баянгол": "БГД",
+  "Баянгол дүүрэг": "БГД",
+  "Налайх": "НД",
+  "Налайх дүүрэг": "НД",
+  "Багануур": "БНД",
+  "Багануур дүүрэг": "БНД",
+  "Багахангай": "БХД",
+  "Багахангай дүүрэг": "БХД",
+};
+
+const formatDistrictShort = (value: string) =>
+  districtShortMap[value] ?? value;
 
 export default function ProfileScreen({
   profile,
@@ -217,10 +276,11 @@ export default function ProfileScreen({
               <View style={styles.chipWrap}>
                 {profile.workTypes.map((item) => {
                   const Icon = workTypeIconMap[item];
+                  const label = workTypeLabelMap[item] ?? item;
                   return (
                     <View key={`work-${item}`} style={styles.chip}>
                       {Icon ? <Icon width={18} height={18} /> : null}
-                      <Text style={styles.chipText}>{item}</Text>
+                      <Text style={styles.chipText}>{label}</Text>
                     </View>
                   );
                 })}
@@ -235,11 +295,14 @@ export default function ProfileScreen({
                 <Text style={styles.sectionAction}>Засах</Text>
               </View>
               <View style={styles.chipWrap}>
-                {profile.serviceAreas.map((item) => (
-                  <View key={`area-${item}`} style={styles.chip}>
-                    <Text style={styles.chipText}>{item}</Text>
-                  </View>
-                ))}
+                {profile.serviceAreas.map((item) => {
+                  const label = formatDistrictShort(item);
+                  return (
+                    <View key={`area-${item}`} style={styles.chip}>
+                      <Text style={styles.chipText}>{label}</Text>
+                    </View>
+                  );
+                })}
               </View>
             </View>
           ) : null}

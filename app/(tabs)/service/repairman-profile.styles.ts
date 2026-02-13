@@ -43,6 +43,11 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
+    overflow: "hidden",
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
   },
   profileInfo: {
     flex: 1,
@@ -72,16 +77,20 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 8,
+    gap: 12,
   },
   infoLabel: {
     fontSize: 13,
     color: "#7A7A7A",
     fontWeight: "600",
+    flex: 1,
   },
   infoValue: {
     fontSize: 13,
     color: "#1F1F1F",
     fontWeight: "600",
+    textAlign: "right",
+    flex: 1,
   },
   sectionTitle: {
     fontSize: 16,
@@ -94,6 +103,11 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
+  },
+  emptySkill: {
+    fontSize: 13,
+    color: "#7A7A7A",
+    fontWeight: "600",
   },
   chip: {
     flexDirection: "row",
@@ -135,6 +149,7 @@ export const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     marginBottom: 12,
+    backgroundColor: "#FFFFFF",
   },
   reviewTopRow: {
     flexDirection: "row",
@@ -178,7 +193,7 @@ export const styles = StyleSheet.create({
   selectButton: {
     marginTop: 12,
     height: 50,
-    borderRadius: 14,
+    borderRadius: 25,
     backgroundColor: "#000000",
     alignItems: "center",
     justifyContent: "center",
@@ -187,5 +202,26 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     color: "#FFFFFF",
+  },
+  loadingCard: {
+    borderWidth: 1,
+    borderColor: "#EAEAEA",
+    borderRadius: 16,
+    padding: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  errorTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1F1F1F",
+    marginBottom: 6,
+  },
+  errorText: {
+    fontSize: 13,
+    color: "#7A7A7A",
+    fontWeight: "600",
+    textAlign: "center",
   },
 });

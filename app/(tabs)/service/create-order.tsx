@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   Pressable,
   Platform,
@@ -9,9 +9,11 @@ import {
   TextInput,
   Modal,
   View,
+  Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { useUser } from "@clerk/clerk-expo";
 import { styles } from "./create-order.styles";
 
 const services = [
@@ -51,7 +53,27 @@ const districts = [
 export default function CreateOrderScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const params = useLocalSearchParams<{ type?: string }>();
+  const { user, isLoaded: isUserLoaded } = useUser();
+  const apiBaseUrl =
+    process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:3000";
+  const params = useLocalSearchParams<{
+    type?: string;
+    typeKey?: string;
+    typeLabel?: string;
+    date?: string;
+    district?: string;
+    khoroo?: string;
+    address?: string;
+    description?: string;
+    urgency?: string;
+    selectedWorkerId?: string;
+    selectedWorkerName?: string;
+    selectedWorkerRating?: string;
+    selectedWorkerOrders?: string;
+    selectedWorkerYears?: string;
+    selectedWorkerAreas?: string;
+    selectedWorkerAvatar?: string;
+  }>();
   const [date, setDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [tempDate, setTempDate] = useState<Date>(new Date());
@@ -62,6 +84,26 @@ export default function CreateOrderScreen() {
   const [address, setAddress] = useState("");
   const [description, setDescription] = useState("");
   const [urgency, setUrgency] = useState<"normal" | "urgent" | null>(null);
+  const [errors, setErrors] = useState<{
+    service?: string;
+    date?: string;
+    district?: string;
+    khoroo?: string;
+    address?: string;
+    description?: string;
+    urgency?: string;
+  }>({});
+  const [selectedWorker, setSelectedWorker] = useState<{
+    id: string;
+    name: string;
+    rating?: number | null;
+    orders?: number | null;
+    years?: number | null;
+    areas: string[];
+    avatarUrl?: string | null;
+  } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const minimumDate = useMemo(() => {
     const today = new Date();
@@ -69,10 +111,23 @@ export default function CreateOrderScreen() {
     return today;
   }, []);
 
+  const serviceParamLabel =
+    typeof params.typeLabel === "string"
+      ? params.typeLabel
+      : typeof params.type === "string"
+        ? params.type
+        : "";
+  const serviceParamKey =
+    typeof params.typeKey === "string" ? params.typeKey : "";
   const selectedService = useMemo(() => {
-    const label = typeof params.type === "string" ? params.type : "";
-    return services.find((item) => item.label === label) ?? services[0];
-  }, [params.type]);
+    if (serviceParamKey) {
+      return services.find((item) => item.key === serviceParamKey) ?? services[0];
+    }
+    return services.find((item) => item.label === serviceParamLabel) ?? services[0];
+  }, [serviceParamKey, serviceParamLabel]);
+  const isServiceParamValid = !serviceParamLabel
+    ? true
+    : services.some((item) => item.label === serviceParamLabel);
 
   const khorooOptions = useMemo(() => {
     return districts.find((item) => item.name === district)?.khoroos ?? [];
@@ -84,6 +139,14 @@ export default function CreateOrderScreen() {
     const month = `${date.getMonth() + 1}`.padStart(2, "0");
     const day = `${date.getDate()}`.padStart(2, "0");
     return `${year}/${month}/${day}`;
+  }, [date]);
+
+  const apiDate = useMemo(() => {
+    if (!date) return "";
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, "0");
+    const day = `${date.getDate()}`.padStart(2, "0");
+    return `${year}-${month}-${day}`;
   }, [date]);
 
   const normalizeToMinimum = (value: Date) =>
@@ -100,6 +163,7 @@ export default function CreateOrderScreen() {
   const confirmDatePicker = () => {
     setDate(tempDate);
     setShowDatePicker(false);
+    setErrors((prev) => ({ ...prev, date: undefined }));
   };
 
   const handleDateChange = (_event: unknown, selectedDate?: Date) => {
@@ -111,18 +175,279 @@ export default function CreateOrderScreen() {
     }
     setDate(nextDate);
     setShowDatePicker(false);
+    setErrors((prev) => ({ ...prev, date: undefined }));
   };
 
   const handleSelectDistrict = (value: string) => {
     setDistrict(value);
     setKhoroo("");
     setShowDistrictPicker(false);
+    setErrors((prev) => ({ ...prev, district: undefined, khoroo: undefined }));
   };
 
   const handleSelectKhoroo = (value: string) => {
     setKhoroo(value);
     setShowKhorooPicker(false);
+    setErrors((prev) => ({ ...prev, khoroo: undefined }));
   };
+
+  const validateForm = () => {
+    const nextErrors: {
+      service?: string;
+      date?: string;
+      district?: string;
+      khoroo?: string;
+      address?: string;
+      description?: string;
+      urgency?: string;
+    } = {};
+
+    if (!isServiceParamValid || !selectedService?.key) {
+      nextErrors.service = "Үйлчилгээний төрөл буруу байна.";
+    }
+
+    if (!date) {
+      nextErrors.date = "Огноо сонгоно уу.";
+    } else if (date < minimumDate) {
+      nextErrors.date = "Өнөөдрөөс өмнөх огноо сонгох боломжгүй.";
+    }
+
+    if (!district) {
+      nextErrors.district = "Дүүрэг сонгоно уу.";
+    }
+
+    if (!khoroo) {
+      nextErrors.khoroo = "Хороо сонгоно уу.";
+    }
+
+    if (!address.trim()) {
+      nextErrors.address = "Дэлгэрэнгүй хаяг бичнэ үү.";
+    }
+
+    if (!description.trim()) {
+      nextErrors.description = "Тайлбар бичнэ үү.";
+    }
+
+    if (!urgency) {
+      nextErrors.urgency = "Яаралтай эсэхийг сонгоно уу.";
+    }
+
+    return nextErrors;
+  };
+
+  const fetchUserProfileId = async () => {
+    const email = user?.primaryEmailAddress?.emailAddress?.trim();
+    if (!email) {
+      throw new Error("Хэрэглэгчийн имэйл олдсонгүй.");
+    }
+
+    const response = await fetch(
+      `${apiBaseUrl}/profiles?email=${encodeURIComponent(email)}`,
+    );
+    if (!response.ok) {
+      throw new Error(`Профайл татах үед алдаа гарлаа. HTTP ${response.status}`);
+    }
+    const payload = await response.json().catch(() => null);
+    const data = payload?.data;
+    if (!data?.id) {
+      throw new Error("Хэрэглэгчийн профайл олдсонгүй.");
+    }
+    return data.id as string;
+  };
+
+  const handlePrimaryAction = async () => {
+    const nextErrors = validateForm();
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
+    if (selectedWorker?.id) {
+      if (!isUserLoaded) return;
+      setIsSubmitting(true);
+      setSubmitError(null);
+      try {
+        const userProfileId = await fetchUserProfileId();
+        const payload = {
+          service_key: selectedService.key,
+          service_label: selectedService.label,
+          scheduled_date: apiDate,
+          district,
+          khoroo,
+          address: address.trim(),
+          description: description.trim(),
+          urgency: urgency ?? "normal",
+          user_profile_id: userProfileId,
+          worker_profile_id: selectedWorker.id,
+        };
+
+        const response = await fetch(`${apiBaseUrl}/orders`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const result = await response.json().catch(() => null);
+        if (!response.ok) {
+          const message =
+            result?.error ?? result?.message ?? `HTTP ${response.status}`;
+          throw new Error(message);
+        }
+
+        router.push("/(tabs)/order");
+      } catch (err) {
+        setSubmitError(
+          err instanceof Error ? err.message : "Хадгалах үед алдаа гарлаа.",
+        );
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    router.push({
+      pathname: "/service/select-repairman",
+      params: {
+        typeKey: selectedService.key,
+        typeLabel: selectedService.label,
+        district,
+        date: apiDate,
+        khoroo,
+        address,
+        description,
+        urgency: urgency ?? "",
+      },
+    });
+  };
+
+  const districtShortMap: Record<string, string> = {
+    "Баянзүрх": "БЗД",
+    "Баянзүрх дүүрэг": "БЗД",
+    "Сонгинохайрхан": "СХД",
+    "Сонгинохайрхан дүүрэг": "СХД",
+    "Чингэлтэй": "ЧД",
+    "Чингэлтэй дүүрэг": "ЧД",
+    "Сүхбаатар": "СБД",
+    "Сүхбаатар дүүрэг": "СБД",
+    "Хан-Уул": "ХУД",
+    "Хан-Уул дүүрэг": "ХУД",
+    "Баянгол": "БГД",
+    "Баянгол дүүрэг": "БГД",
+    "Налайх": "НД",
+    "Налайх дүүрэг": "НД",
+    "Багануур": "БНД",
+    "Багануур дүүрэг": "БНД",
+    "Багахангай": "БХД",
+    "Багахангай дүүрэг": "БХД",
+  };
+
+  const formatAreas = (areas: string[]) => {
+    if (areas.length === 0) return "—";
+    const mapped = areas.map((area) => districtShortMap[area] ?? area);
+    const maxVisible = 4;
+    if (mapped.length <= maxVisible) return mapped.join(", ");
+    const visible = mapped.slice(0, maxVisible).join(", ");
+    const remaining = mapped.length - maxVisible;
+    return `${visible} +${remaining}`;
+  };
+
+  const normalizeList = (value: unknown): string[] => {
+    if (Array.isArray(value)) return value.filter(Boolean).map(String);
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      if (!trimmed) return [];
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(Boolean).map(String);
+        }
+      } catch {
+        // fall through to split
+      }
+      return trimmed
+        .split(/[;,]/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+    return [];
+  };
+
+  useEffect(() => {
+    const paramDate = typeof params.date === "string" ? params.date : "";
+    if (!date && paramDate) {
+      const parsed = new Date(`${paramDate}T00:00:00`);
+      if (!Number.isNaN(parsed.getTime())) setDate(parsed);
+    }
+    if (!district && typeof params.district === "string") {
+      setDistrict(params.district);
+    }
+    if (!khoroo && typeof params.khoroo === "string") {
+      setKhoroo(params.khoroo);
+    }
+    if (!address && typeof params.address === "string") {
+      setAddress(params.address);
+    }
+    if (!description && typeof params.description === "string") {
+      setDescription(params.description);
+    }
+    if (!urgency && typeof params.urgency === "string") {
+      const nextUrgency =
+        params.urgency === "urgent" || params.urgency === "normal"
+          ? params.urgency
+          : null;
+      if (nextUrgency) setUrgency(nextUrgency);
+    }
+
+    if (typeof params.selectedWorkerId === "string") {
+      const areas = normalizeList(params.selectedWorkerAreas);
+      const rating =
+        typeof params.selectedWorkerRating === "string" &&
+        params.selectedWorkerRating.trim()
+          ? Number(params.selectedWorkerRating)
+          : null;
+      const orders =
+        typeof params.selectedWorkerOrders === "string" &&
+        params.selectedWorkerOrders.trim()
+          ? Number(params.selectedWorkerOrders)
+          : null;
+      const years =
+        typeof params.selectedWorkerYears === "string" &&
+        params.selectedWorkerYears.trim()
+          ? Number(params.selectedWorkerYears)
+          : null;
+      setSelectedWorker({
+        id: params.selectedWorkerId,
+        name: typeof params.selectedWorkerName === "string"
+          ? params.selectedWorkerName
+          : "Засварчин",
+        rating: Number.isFinite(rating) ? rating : null,
+        orders: Number.isFinite(orders) ? orders : null,
+        years: Number.isFinite(years) ? years : null,
+        areas,
+        avatarUrl:
+          typeof params.selectedWorkerAvatar === "string"
+            ? params.selectedWorkerAvatar
+            : null,
+      });
+    }
+  }, [
+    params.address,
+    params.date,
+    params.description,
+    params.district,
+    params.khoroo,
+    params.selectedWorkerAreas,
+    params.selectedWorkerAvatar,
+    params.selectedWorkerId,
+    params.selectedWorkerName,
+    params.selectedWorkerOrders,
+    params.selectedWorkerRating,
+    params.selectedWorkerYears,
+    params.urgency,
+    address,
+    date,
+    description,
+    district,
+    khoroo,
+    urgency,
+  ]);
 
   return (
     <View style={styles.container}>
@@ -156,10 +481,15 @@ export default function CreateOrderScreen() {
           </View>
           <Text style={styles.typeText}>{selectedService.label}</Text>
         </View>
+        {errors.service && <Text style={styles.errorText}>{errors.service}</Text>}
 
         <Text style={styles.label}>Он/сар/өдөр</Text>
         <Pressable
-          style={[styles.input, styles.dateInput]}
+          style={[
+            styles.input,
+            styles.dateInput,
+            errors.date && styles.inputError,
+          ]}
           onPress={openDatePicker}
         >
           <Text
@@ -172,6 +502,7 @@ export default function CreateOrderScreen() {
           </Text>
           <MaterialCommunityIcons name="calendar-month" size={20} color="#9B9B9B" />
         </Pressable>
+        {errors.date && <Text style={styles.errorText}>{errors.date}</Text>}
         {showDatePicker && Platform.OS !== "ios" && (
           <DateTimePicker
             value={date ?? new Date()}
@@ -213,7 +544,11 @@ export default function CreateOrderScreen() {
 
         <Text style={styles.label}>Байршил</Text>
         <Pressable
-          style={[styles.input, styles.selectInput]}
+          style={[
+            styles.input,
+            styles.selectInput,
+            errors.district && styles.inputError,
+          ]}
           onPress={() => setShowDistrictPicker(true)}
         >
           <Text
@@ -226,11 +561,13 @@ export default function CreateOrderScreen() {
           </Text>
           <MaterialCommunityIcons name="chevron-down" size={20} color="#9B9B9B" />
         </Pressable>
+        {errors.district && <Text style={styles.errorText}>{errors.district}</Text>}
         <Pressable
           style={[
             styles.input,
             styles.selectInput,
             !district && styles.selectDisabled,
+            errors.khoroo && styles.inputError,
           ]}
           onPress={() => district && setShowKhorooPicker(true)}
           disabled={!district}
@@ -245,6 +582,7 @@ export default function CreateOrderScreen() {
           </Text>
           <MaterialCommunityIcons name="chevron-down" size={20} color="#9B9B9B" />
         </Pressable>
+        {errors.khoroo && <Text style={styles.errorText}>{errors.khoroo}</Text>}
         <Modal
           visible={showDistrictPicker}
           transparent
@@ -324,20 +662,38 @@ export default function CreateOrderScreen() {
         <TextInput
           placeholder="Дэлгэрэнгүй хаяг (орц, давхар, код)"
           placeholderTextColor="#A3A3A3"
-          style={styles.input}
+          style={[styles.input, errors.address && styles.inputError]}
           value={address}
-          onChangeText={setAddress}
+          onChangeText={(value) => {
+            setAddress(value);
+            if (errors.address) {
+              setErrors((prev) => ({ ...prev, address: undefined }));
+            }
+          }}
         />
+        {errors.address && <Text style={styles.errorText}>{errors.address}</Text>}
 
         <Text style={styles.label}>Тайлбар</Text>
         <TextInput
           placeholder="Тайлбар бичнэ үү"
           placeholderTextColor="#A3A3A3"
-          style={[styles.input, styles.textArea]}
+          style={[
+            styles.input,
+            styles.textArea,
+            errors.description && styles.inputError,
+          ]}
           multiline
           value={description}
-          onChangeText={setDescription}
+          onChangeText={(value) => {
+            setDescription(value);
+            if (errors.description) {
+              setErrors((prev) => ({ ...prev, description: undefined }));
+            }
+          }}
         />
+        {errors.description && (
+          <Text style={styles.errorText}>{errors.description}</Text>
+        )}
 
         <Text style={styles.label}>Зураг хавсаргах</Text>
         <Pressable style={styles.attachBox} onPress={() => console.log("add")}>
@@ -350,8 +706,14 @@ export default function CreateOrderScreen() {
             style={[
               styles.urgencyButton,
               urgency === "normal" && styles.urgencySelected,
+              errors.urgency && styles.inputError,
             ]}
-            onPress={() => setUrgency("normal")}
+            onPress={() => {
+              setUrgency("normal");
+              if (errors.urgency) {
+                setErrors((prev) => ({ ...prev, urgency: undefined }));
+              }
+            }}
           >
             <Text
               style={[
@@ -366,8 +728,14 @@ export default function CreateOrderScreen() {
             style={[
               styles.urgencyButton,
               urgency === "urgent" && styles.urgencySelected,
+              errors.urgency && styles.inputError,
             ]}
-            onPress={() => setUrgency("urgent")}
+            onPress={() => {
+              setUrgency("urgent");
+              if (errors.urgency) {
+                setErrors((prev) => ({ ...prev, urgency: undefined }));
+              }
+            }}
           >
             <Text
               style={[
@@ -379,17 +747,87 @@ export default function CreateOrderScreen() {
             </Text>
           </Pressable>
         </View>
+        {errors.urgency && (
+          <Text style={styles.errorTextBelow}>{errors.urgency}</Text>
+        )}
+
+        {selectedWorker ? (
+          <>
+            <Text style={styles.label}>Засварчин</Text>
+            <View style={styles.workerCard}>
+              <View style={styles.workerTopRow}>
+                <View style={styles.workerAvatar}>
+                  <Image
+                    source={{
+                      uri:
+                        selectedWorker.avatarUrl ??
+                        "https://cdn-icons-png.flaticon.com/512/4140/4140048.png",
+                    }}
+                    style={styles.workerAvatarImage}
+                  />
+                </View>
+                <View style={styles.workerTitleBlock}>
+                  <Text style={styles.workerName}>{selectedWorker.name}</Text>
+                  <Text style={styles.workerSubtitle}>
+                    {selectedService.label} мэргэжилтэн
+                  </Text>
+                </View>
+                <View style={styles.workerRating}>
+                  <MaterialCommunityIcons name="star" size={16} color="#F59E0B" />
+                  <Text style={styles.workerRatingText}>
+                    {typeof selectedWorker.rating === "number"
+                      ? selectedWorker.rating.toFixed(1)
+                      : "—"}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.workerInfoRow}>
+                <Text style={styles.workerInfoLabel}>Захиалга</Text>
+                <Text style={styles.workerInfoValue}>
+                  {typeof selectedWorker.orders === "number"
+                    ? selectedWorker.orders
+                    : "—"}
+                </Text>
+              </View>
+              <View style={styles.workerInfoRow}>
+                <Text style={styles.workerInfoLabel}>Ажилласан жил</Text>
+                <Text style={styles.workerInfoValue}>
+                  {typeof selectedWorker.years === "number"
+                    ? `${selectedWorker.years} жил`
+                    : "—"}
+                </Text>
+              </View>
+              <View style={styles.workerInfoRow}>
+                <Text style={styles.workerInfoLabel}>Үйлчлэх бүс</Text>
+                <Text style={styles.workerInfoValue}>
+                  {formatAreas(selectedWorker.areas)}
+                </Text>
+              </View>
+            </View>
+          </>
+        ) : null}
+
+        {submitError ? (
+          <Text style={styles.errorText}>{submitError}</Text>
+        ) : null}
 
         <Pressable
-          style={styles.submitButton}
-          onPress={() =>
-            router.push({
-              pathname: "/service/select-repairman",
-              params: { type: selectedService.label },
-            })
-          }
+          style={[
+            styles.submitButton,
+            selectedWorker && styles.submitButtonSelected,
+            isSubmitting && { opacity: 0.7 },
+          ]}
+          onPress={handlePrimaryAction}
+          disabled={isSubmitting}
         >
-          <Text style={styles.submitText}>Засварчин сонгох</Text>
+          <Text style={styles.submitText}>
+            {isSubmitting
+              ? "Илгээж байна..."
+              : selectedWorker
+                ? "Захиалгын хүсэлт илгээх"
+                : "Засварчин сонгох"}
+          </Text>
         </Pressable>
       </ScrollView>
     </View>
