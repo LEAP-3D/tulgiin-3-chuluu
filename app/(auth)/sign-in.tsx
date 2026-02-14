@@ -1,13 +1,13 @@
-import { useAuth, useSignIn } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import * as React from "react";
 import { TextInput } from "react-native";
+import { supabase } from "@/lib/supabase";
+import { useSupabaseAuth } from "@/lib/supabase-auth";
 import { SignInCodeStep } from "./_components/sign-in-code-step";
 import { SignInEmailStep } from "./_components/sign-in-email-step";
 
 export default function Page() {
-  const { signIn, setActive, isLoaded } = useSignIn();
-  const { isSignedIn, signOut, isLoaded: isAuthLoaded } = useAuth();
+  const { isSignedIn, isLoaded } = useSupabaseAuth();
   const router = useRouter();
 
   const [emailAddress, setEmailAddress] = React.useState("");
@@ -19,37 +19,18 @@ export default function Page() {
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
   const startEmailCodeSignIn = React.useCallback(async () => {
-    if (!isLoaded || !signIn) return;
-
-    const signInAttempt = await signIn.create({
-      identifier: emailAddress.trim(),
+    if (!isLoaded) return;
+    const { error } = await supabase.auth.signInWithOtp({
+      email: emailAddress.trim(),
     });
-
-    if (signInAttempt.status === "complete") {
-      setShowSuccess(true);
-      await setActive({ session: signInAttempt.createdSessionId });
-      setTimeout(() => router.replace("/(tabs)/service"), 900);
-      return;
+    if (error) {
+      throw error;
     }
-
-    const emailCodeFactor = signInAttempt.supportedFirstFactors?.find(
-      (factor) => factor.strategy === "email_code",
-    );
-
-    if (!emailCodeFactor) {
-      console.error(JSON.stringify(signInAttempt, null, 2));
-      return;
-    }
-
-    await signIn.prepareFirstFactor({
-      strategy: "email_code",
-      emailAddressId: emailCodeFactor.emailAddressId,
-    });
     setShowEmailCode(true);
-  }, [isLoaded, signIn, emailAddress, setActive, router]);
+  }, [emailAddress, isLoaded]);
 
   const onSignInPress = React.useCallback(async () => {
-    if (!isLoaded || !isAuthLoaded || isSubmitting) return;
+    if (!isLoaded || isSubmitting) return;
 
     if (isSignedIn) {
       router.replace("/(tabs)/service");
@@ -61,71 +42,43 @@ export default function Page() {
       setIsSubmitting(true);
       await startEmailCodeSignIn();
     } catch (err) {
-      const clerkCode = (err as { errors?: { code?: string }[] })?.errors?.[0]
-        ?.code;
-      const errObj = err as {
-        status?: number;
-        errors?: { code?: string; message?: string }[];
-      };
-
-      if (
-        errObj?.status === 429 ||
-        errObj?.errors?.[0]?.code === "too_many_requests"
-      ) {
+      const errObj = err as { status?: number; message?: string };
+      if (errObj?.status === 429) {
         setErrorMessage(
           "Хэт олон хүсэлт илгээгдсэн байна. Түр хүлээгээд дахин оролдоно уу.",
         );
         return;
       }
-
-      if (clerkCode === "session_exists") {
-        try {
-          await signOut();
-          await startEmailCodeSignIn();
-          return;
-        } catch (retryErr) {
-          console.error(JSON.stringify(retryErr, null, 2));
-          return;
-        }
-      }
-
       console.error(JSON.stringify(err, null, 2));
-      setErrorMessage(errObj?.errors?.[0]?.message ?? "Нэвтрэх үед алдаа гарлаа.");
+      setErrorMessage(errObj?.message ?? "Нэвтрэх үед алдаа гарлаа.");
     } finally {
       setIsSubmitting(false);
     }
-  }, [
-    isLoaded,
-    isAuthLoaded,
-    isSubmitting,
-    isSignedIn,
-    signOut,
-    startEmailCodeSignIn,
-    router,
-  ]);
+  }, [isLoaded, isSubmitting, isSignedIn, startEmailCodeSignIn, router]);
 
   const onVerifyPress = React.useCallback(async () => {
-    if (!isLoaded || !isAuthLoaded || !signIn) return;
-    if (isSignedIn) await signOut();
-
+    if (!isLoaded) return;
     try {
-      const { createdSessionId } = await signIn.attemptFirstFactor({
-        strategy: "email_code",
-        code,
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: emailAddress.trim(),
+        token: code,
+        type: "email",
       });
 
-      if (!createdSessionId) {
-        console.error("No session created");
-        return;
+      if (error) throw error;
+      if (!data.session) {
+        throw new Error("Session үүссэнгүй.");
       }
-
       setShowSuccess(true);
-      await setActive({ session: createdSessionId });
       setTimeout(() => router.replace("/(tabs)/service"), 900);
     } catch (err) {
       console.error(JSON.stringify(err, null, 2));
+      setErrorMessage(
+        (err as { message?: string })?.message ??
+          "Баталгаажуулах үед алдаа гарлаа.",
+      );
     }
-  }, [isLoaded, isAuthLoaded, signIn, isSignedIn, signOut, code, setActive, router]);
+  }, [emailAddress, code, isLoaded, router]);
 
   if (showEmailCode) {
     return (

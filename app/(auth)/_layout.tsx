@@ -1,8 +1,8 @@
-import { useAuth } from "@clerk/clerk-expo";
 import { Redirect, Stack } from "expo-router";
+import { useSupabaseAuth } from "@/lib/supabase-auth";
 
 export default function AuthLayout() {
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useSupabaseAuth();
 
   if (!isLoaded) return null;
   if (isSignedIn) return <Redirect href="/(tabs)/service" />;

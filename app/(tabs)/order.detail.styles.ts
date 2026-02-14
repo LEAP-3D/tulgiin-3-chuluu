@@ -19,6 +19,34 @@ export const orderDetailStyles = {
     fontWeight: "600",
     color: "#1F1F1F",
   },
+  sectionTitleSmall: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1F1F1F",
+    marginBottom: 8,
+  },
+  descriptionText: {
+    fontSize: 13,
+    color: "#1F1F1F",
+    fontWeight: "500",
+    lineHeight: 18,
+  },
+  descriptionMuted: {
+    fontSize: 13,
+    color: "#7A7A7A",
+    fontWeight: "600",
+  },
+  attachmentRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  attachmentImage: {
+    width: 72,
+    height: 72,
+    borderRadius: 12,
+    backgroundColor: "#F2F2F2",
+  },
   profileCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 18,
@@ -37,6 +65,11 @@ export const orderDetailStyles = {
     height: 44,
     borderRadius: 22,
     backgroundColor: "#EDEDED",
+    overflow: "hidden",
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
   },
   profileInfo: {
     flex: 1,
@@ -70,14 +103,25 @@ export const orderDetailStyles = {
   statRow: {
     flexDirection: "row",
     justifyContent: "space-between",
+    gap: 12,
   },
   statLabel: {
     fontSize: 12,
     color: "#7A7A7A",
+    flex: 1,
   },
   statValue: {
     fontSize: 12,
     color: "#1F1F1F",
+    fontWeight: "600",
+  },
+  statValueArea: {
+    flex: 1,
+    textAlign: "right",
+  },
+  workerStatusText: {
+    fontSize: 12,
+    color: "#7A7A7A",
     fontWeight: "600",
   },
   profileActions: {

@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useUser } from "@clerk/clerk-expo";
+import { useSupabaseAuth } from "@/lib/supabase-auth";
 import { styles } from "./create-order.styles";
 
 const services = [
@@ -53,7 +53,7 @@ const districts = [
 export default function CreateOrderScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user, isLoaded: isUserLoaded } = useUser();
+  const { user, isLoaded: isUserLoaded } = useSupabaseAuth();
   const apiBaseUrl =
     process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:3000";
   const params = useLocalSearchParams<{
@@ -236,7 +236,7 @@ export default function CreateOrderScreen() {
   };
 
   const fetchUserProfileId = async () => {
-    const email = user?.primaryEmailAddress?.emailAddress?.trim();
+    const email = user?.email?.trim();
     if (!email) {
       throw new Error("Хэрэглэгчийн имэйл олдсонгүй.");
     }
