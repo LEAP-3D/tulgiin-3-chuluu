@@ -91,8 +91,13 @@ export function useOrdersList(apiBaseUrl: string): OrdersListState {
         payload?.error ?? payload?.message ?? `HTTP ${response.status}`;
       throw new Error(message);
     }
+    const updatedOrder = payload?.data ? mapOrder(payload.data) : null;
     setOrders((prev) =>
-      prev.map((item) => (item.id === orderId ? { ...item, status } : item)),
+      prev.map((item) =>
+        item.id === orderId
+          ? updatedOrder ?? { ...item, status }
+          : item,
+      ),
     );
   };
 

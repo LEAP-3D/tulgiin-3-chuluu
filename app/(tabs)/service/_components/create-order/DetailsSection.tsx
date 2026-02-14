@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, TextInput } from "react-native";
 import { baseStyles } from "./styles/base";
 
 type Props = {
