@@ -1,6 +1,6 @@
 import { Pressable, Text, View } from "react-native";
 import LeftArrowIcon from "@/components/icons/_serviceIcons/leftarrowIcon";
-import { orderDetailStyles } from "../../order.detail.styles";
+import { orderDetailStyles } from "../order.detail.styles";
 
 type Props = {
   onBack: () => void;

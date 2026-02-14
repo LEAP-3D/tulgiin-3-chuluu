@@ -40,10 +40,15 @@ export default function TabLayout() {
           headerShown: false, // Expo Router default header унтраана
           tabBarButton: HapticTab,
           tabBarActiveTintColor: "#FF8A1E",
-          tabBarInactiveTintColor: "#6E6E6E",
+          tabBarInactiveTintColor: "#8A8A8A",
           tabBarStyle: {
             backgroundColor: "#FFFFFF",
+            borderTopWidth: 1,
             borderTopColor: "#E5E5E5",
+          },
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: "500",
           },
         }}
       >
@@ -52,31 +57,44 @@ export default function TabLayout() {
           name="service"
           options={{
             title: "Үйлчилгээ",
-            tabBarIcon: ({ color }) => <UilcilgeeIcon color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="order"
-          options={{
-            title: "Захиалга",
-            tabBarIcon: ({ color }) => <ZahialgaIcon size={28} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="zurwas"
-          options={{
-            title: "Зурвас",
             tabBarIcon: ({ color }) => (
-              <MessageIcon width={26} height={26} color={color} />
+              <View style={{ width: 24, height: 24, alignItems: "center", justifyContent: "center" }}>
+                <UilcilgeeIcon size={22} color={color} />
+              </View>
             ),
           }}
         />
-
+        <Tabs.Screen
+          name="order/index"
+          options={{
+            title: "Захиалга",
+            tabBarIcon: ({ color }) => (
+              <View style={{ width: 24, height: 24, alignItems: "center", justifyContent: "center" }}>
+                <ZahialgaIcon size={22} color={color} />
+              </View>
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="zurwas/index"
+          options={{
+            title: "Зурвас",
+            tabBarIcon: ({ color }) => (
+              <View style={{ width: 24, height: 24, alignItems: "center", justifyContent: "center" }}>
+                <MessageIcon width={22} height={22} color={color} />
+              </View>
+            ),
+          }}
+        />
         <Tabs.Screen
           name="profile"
           options={{
             title: "Профайл",
-            tabBarIcon: ({ color }) => <ProfileIcon size={28} color={color} />,
+            tabBarIcon: ({ color }) => (
+              <View style={{ width: 24, height: 24, alignItems: "center", justifyContent: "center" }}>
+                <ProfileIcon size={22} color={color} />
+              </View>
+            ),
           }}
         />
       </Tabs>

@@ -1,5 +1,5 @@
 import { Text, View } from "react-native";
-import { orderDetailStyles } from "../../order.detail.styles";
+import { orderDetailStyles } from "../order.detail.styles";
 import type { TimelineItem } from "./types";
 
 type Props = {

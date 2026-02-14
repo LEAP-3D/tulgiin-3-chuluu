@@ -1,15 +1,15 @@
 import { Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSupabaseAuth } from "@/lib/supabase-auth";
-import { ChatView } from "./_components/zurwas/ChatView";
-import { ConversationListView } from "./_components/zurwas/ConversationListView";
-import { styles } from "./_components/zurwas/styles";
-import { getParam } from "./_components/zurwas/utils";
-import { useConversationList } from "./_components/zurwas/useConversationList";
-import { useConversationThread } from "./_components/zurwas/useConversationThread";
-import { useChatRealtime } from "./_components/zurwas/useChatRealtime";
-import { useChatPolling } from "./_components/zurwas/useChatPolling";
-import { useChatInput } from "./_components/zurwas/useChatInput";
+import { ChatView } from "./_components/ChatView";
+import { ConversationListView } from "./_components/ConversationListView";
+import { styles } from "./_components/styles";
+import { getParam } from "./_components/utils";
+import { useConversationList } from "./_components/useConversationList";
+import { useConversationThread } from "./_components/useConversationThread";
+import { useChatRealtime } from "./_components/useChatRealtime";
+import { useChatPolling } from "./_components/useChatPolling";
+import { useChatInput } from "./_components/useChatInput";
 
 export default function ZurwasScreen() {
   const router = useRouter();

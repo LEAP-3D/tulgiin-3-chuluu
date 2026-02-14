@@ -1,5 +1,5 @@
 import { Image, Text, View } from "react-native";
-import { orderDetailStyles } from "../../order.detail.styles";
+import { orderDetailStyles } from "../order.detail.styles";
 
 type Props = {
   attachments: string[];
