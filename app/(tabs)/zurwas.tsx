@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -37,6 +37,17 @@ type MessageItem = {
   conversation_id?: string;
   read_at?: string | null;
 };
+
+type TypingPayload = {
+  sender_profile_id: string;
+  is_typing: boolean;
+  conversation_id?: string;
+};
+
+const MESSAGE_POLL_INTERVAL_MS = 3000;
+const TYPING_THROTTLE_MS = 800;
+const TYPING_IDLE_MS = 1500;
+const TYPING_HIDE_DELAY_MS = 2000;
 
 const getParam = (value: string | string[] | undefined) =>
   Array.isArray(value) ? value[0] : value;
@@ -113,11 +124,35 @@ export default function ZurwasScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isOtherTyping, setIsOtherTyping] = useState(false);
+
+  const messagesRef = useRef<MessageItem[]>([]);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const typingStopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const lastTypingSentRef = useRef(0);
+  const pollingRef = useRef(false);
 
   const isChatReady = useMemo(
     () => !!orderId && !!profileId,
     [orderId, profileId],
   );
+
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  const markConversationRead = async (targetConversationId: string) => {
+    if (!profileId) return;
+    await supabase
+      .from("messages")
+      .update({ read_at: new Date().toISOString() })
+      .eq("conversation_id", targetConversationId)
+      .is("read_at", null)
+      .neq("sender_profile_id", profileId);
+  };
 
   useEffect(() => {
     if (!isLoaded || !profileId || orderId) return;
@@ -310,12 +345,7 @@ export default function ZurwasScreen() {
           setMessages(Array.isArray(messageData) ? messageData : []);
         }
 
-        await supabase
-          .from("messages")
-          .update({ read_at: new Date().toISOString() })
-          .eq("conversation_id", resolvedConversationId)
-          .is("read_at", null)
-          .neq("sender_profile_id", profileId);
+        await markConversationRead(resolvedConversationId);
       } catch (err) {
         if (!cancelled) {
           setErrorMessage(
@@ -339,7 +369,7 @@ export default function ZurwasScreen() {
     if (!conversationId) return;
 
     const channel = supabase
-      .channel(`messages-${conversationId}`)
+      .channel(`conversation-${conversationId}`)
       .on(
         "postgres_changes",
         {
@@ -354,14 +384,165 @@ export default function ZurwasScreen() {
             if (prev.some((item) => item.id === row.id)) return prev;
             return [...prev, row];
           });
+          if (row.sender_profile_id !== profileId) {
+            setIsOtherTyping(false);
+            if (typingTimeoutRef.current) {
+              clearTimeout(typingTimeoutRef.current);
+              typingTimeoutRef.current = null;
+            }
+            void markConversationRead(conversationId);
+          }
         },
       )
+      .on("broadcast", { event: "typing" }, (payload) => {
+        const data =
+          (payload as { payload?: TypingPayload }).payload ??
+          (payload as TypingPayload);
+        if (!data || data.sender_profile_id === profileId) return;
+
+        if (data.is_typing) {
+          setIsOtherTyping(true);
+          if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+          }
+          typingTimeoutRef.current = setTimeout(() => {
+            setIsOtherTyping(false);
+          }, TYPING_HIDE_DELAY_MS);
+        } else {
+          setIsOtherTyping(false);
+          if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+            typingTimeoutRef.current = null;
+          }
+        }
+      })
       .subscribe();
 
+    channelRef.current = channel;
+
     return () => {
+      channelRef.current = null;
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
+      }
+      if (typingStopTimeoutRef.current) {
+        clearTimeout(typingStopTimeoutRef.current);
+        typingStopTimeoutRef.current = null;
+      }
+      if (profileId) {
+        void channel.send({
+          type: "broadcast",
+          event: "typing",
+          payload: {
+            sender_profile_id: profileId,
+            is_typing: false,
+            conversation_id: conversationId,
+          },
+        });
+      }
       supabase.removeChannel(channel);
     };
-  }, [conversationId]);
+  }, [conversationId, profileId]);
+
+  useEffect(() => {
+    if (!conversationId || !profileId) return;
+    let cancelled = false;
+
+    const pollForMessages = async () => {
+      if (cancelled || pollingRef.current) return;
+      pollingRef.current = true;
+      try {
+        const currentMessages = messagesRef.current;
+        const lastMessage = currentMessages[currentMessages.length - 1];
+        let query = supabase
+          .from("messages")
+          .select("id, body, sender_profile_id, created_at, read_at")
+          .eq("conversation_id", conversationId)
+          .order("created_at", { ascending: true });
+
+        if (lastMessage?.created_at) {
+          query = query.gte("created_at", lastMessage.created_at);
+        }
+
+        const { data, error } = await query;
+        if (error) return;
+
+        const incoming = Array.isArray(data) ? (data as MessageItem[]) : [];
+        if (incoming.length === 0) return;
+
+        setMessages((prev) => {
+          const knownIds = new Set(prev.map((item) => item.id));
+          const next = [...prev];
+          incoming.forEach((message) => {
+            if (!knownIds.has(message.id)) {
+              next.push(message);
+            }
+          });
+          return next;
+        });
+
+        if (incoming.some((item) => item.sender_profile_id !== profileId)) {
+          setIsOtherTyping(false);
+          if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+            typingTimeoutRef.current = null;
+          }
+          void markConversationRead(conversationId);
+        }
+      } finally {
+        pollingRef.current = false;
+      }
+    };
+
+    const timer = setInterval(pollForMessages, MESSAGE_POLL_INTERVAL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [conversationId, profileId]);
+
+  const sendTypingEvent = (isTyping: boolean) => {
+    const channel = channelRef.current;
+    if (!channel || !profileId || !conversationId) return;
+    void channel.send({
+      type: "broadcast",
+      event: "typing",
+      payload: {
+        sender_profile_id: profileId,
+        is_typing: isTyping,
+        conversation_id: conversationId,
+      },
+    });
+  };
+
+  const handleInputChange = (text: string) => {
+    setMessageInput(text);
+    if (!conversationId || !profileId) return;
+
+    const trimmed = text.trim();
+    if (trimmed.length === 0) {
+      if (typingStopTimeoutRef.current) {
+        clearTimeout(typingStopTimeoutRef.current);
+        typingStopTimeoutRef.current = null;
+      }
+      sendTypingEvent(false);
+      return;
+    }
+
+    const now = Date.now();
+    if (now - lastTypingSentRef.current > TYPING_THROTTLE_MS) {
+      sendTypingEvent(true);
+      lastTypingSentRef.current = now;
+    }
+
+    if (typingStopTimeoutRef.current) {
+      clearTimeout(typingStopTimeoutRef.current);
+    }
+    typingStopTimeoutRef.current = setTimeout(() => {
+      sendTypingEvent(false);
+    }, TYPING_IDLE_MS);
+  };
 
   const handleSend = async () => {
     const text = messageInput.trim();
@@ -388,6 +569,11 @@ export default function ZurwasScreen() {
       }
 
       setMessageInput("");
+      sendTypingEvent(false);
+      if (typingStopTimeoutRef.current) {
+        clearTimeout(typingStopTimeoutRef.current);
+        typingStopTimeoutRef.current = null;
+      }
       await supabase
         .from("conversations")
         .update({ last_message_at: new Date().toISOString() })
@@ -513,39 +699,44 @@ export default function ZurwasScreen() {
         ) : errorMessage ? (
           <Text style={styles.statusText}>{errorMessage}</Text>
         ) : (
-          <ScrollView
-            contentContainerStyle={styles.messageList}
-            keyboardShouldPersistTaps="handled"
-          >
-            {messages.length === 0 ? (
-              <Text style={styles.emptyText}>Одоогоор зурвас алга.</Text>
-            ) : (
-              messages.map((message) => {
-                const isMine = message.sender_profile_id === profileId;
-                return (
-                  <View
-                    key={message.id}
-                    style={[
-                      styles.messageBubble,
-                      isMine ? styles.myBubble : styles.otherBubble,
-                    ]}
-                  >
-                    <Text
+          <>
+            <ScrollView
+              contentContainerStyle={styles.messageList}
+              keyboardShouldPersistTaps="handled"
+            >
+              {messages.length === 0 ? (
+                <Text style={styles.emptyText}>Одоогоор зурвас алга.</Text>
+              ) : (
+                messages.map((message) => {
+                  const isMine = message.sender_profile_id === profileId;
+                  return (
+                    <View
+                      key={message.id}
                       style={[
-                        styles.messageText,
-                        isMine ? styles.myText : styles.otherText,
+                        styles.messageBubble,
+                        isMine ? styles.myBubble : styles.otherBubble,
                       ]}
                     >
-                      {message.body}
-                    </Text>
-                    <Text style={styles.timeText}>
-                      {formatTime(message.created_at)}
-                    </Text>
-                  </View>
-                );
-              })
+                      <Text
+                        style={[
+                          styles.messageText,
+                          isMine ? styles.myText : styles.otherText,
+                        ]}
+                      >
+                        {message.body}
+                      </Text>
+                      <Text style={styles.timeText}>
+                        {formatTime(message.created_at)}
+                      </Text>
+                    </View>
+                  );
+                })
+              )}
+            </ScrollView>
+            {isOtherTyping && (
+              <Text style={styles.typingText}>Typing...</Text>
             )}
-          </ScrollView>
+          </>
         )}
       </View>
 
@@ -555,9 +746,10 @@ export default function ZurwasScreen() {
           placeholder="Мессеж бичих..."
           placeholderTextColor="#9A9A9A"
           value={messageInput}
-          onChangeText={setMessageInput}
+          onChangeText={handleInputChange}
           editable={!isLoading && !!isChatReady}
           multiline
+          onBlur={() => sendTypingEvent(false)}
         />
         <Pressable
           style={({ pressed }) => [
@@ -703,6 +895,13 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 11,
     color: "#B3B3B3",
+  },
+  typingText: {
+    marginTop: 6,
+    marginBottom: 4,
+    fontSize: 12,
+    color: "#9A9A9A",
+    fontStyle: "italic",
   },
   inputRow: {
     flexDirection: "row",
