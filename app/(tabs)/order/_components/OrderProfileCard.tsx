@@ -2,8 +2,8 @@ import { Image, Pressable, Text, View } from "react-native";
 import CallIcon from "@/components/icons/call";
 import { SERVICE_LABELS } from "@/constants/services";
 import { formatAreas } from "@/lib/utils/formatAreas";
-import { orderDetailStyles } from "../../order.detail.styles";
-import { styles } from "../../order.styles";
+import { orderDetailStyles } from "../order.detail.styles";
+import { styles } from "../order.styles";
 import type { CustomerProfile, OrderItem, WorkerProfile } from "./types";
 
 type Props = {

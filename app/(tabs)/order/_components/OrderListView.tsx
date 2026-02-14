@@ -1,5 +1,5 @@
 import { Pressable, Text, View } from "react-native";
-import { styles } from "../../order.styles";
+import { styles } from "../order.styles";
 import { STATUS_LABELS } from "./constants";
 import { SERVICE_EMOJIS } from "@/constants/services";
 import type { OrderItem } from "./types";

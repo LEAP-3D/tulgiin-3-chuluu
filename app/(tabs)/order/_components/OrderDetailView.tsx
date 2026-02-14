@@ -7,7 +7,7 @@ import { OrderAddressCard } from "./OrderAddressCard";
 import { OrderDescriptionCard } from "./OrderDescriptionCard";
 import { OrderAttachmentsCard } from "./OrderAttachmentsCard";
 import { OrderStatusTimeline } from "./OrderStatusTimeline";
-import { orderDetailStyles } from "../../order.detail.styles";
+import { orderDetailStyles } from "../order.detail.styles";
 
 type Props = {
   selectedOrder: OrderItem | null;
