@@ -1,13 +1,13 @@
-import { useAuth } from "@clerk/clerk-expo";
 import { Redirect } from "expo-router";
 import { Text, View, TouchableOpacity } from "react-native";
+import { useSupabaseAuth } from "@/lib/supabase-auth";
 
 export default function UseAuthExample() {
-  const { isLoaded, isSignedIn, userId, sessionId, getToken } = useAuth();
+  const { isLoaded, isSignedIn, user, session } = useSupabaseAuth();
 
   const fetchExternalData = async () => {
-    // Use `getToken()` to get the current user's session token
-    const token = await getToken();
+    const token = session?.access_token;
+    if (!token) return null;
 
     // Use `token` to fetch data from an external API
     const response = await fetch("https://api.example.com/data", {
@@ -32,7 +32,7 @@ export default function UseAuthExample() {
   return (
     <View>
       <Text>
-        Hello, {userId}! Your current active session is {sessionId}.
+        Hello, {user?.id ?? "user"}! Your current session is active.
       </Text>
       <TouchableOpacity onPress={fetchExternalData}>
         <Text>Fetch Data</Text>

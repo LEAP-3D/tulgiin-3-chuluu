@@ -1,4 +1,3 @@
-import { useAuth } from "@clerk/clerk-expo";
 import { Redirect, Tabs } from "expo-router";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
@@ -8,9 +7,10 @@ import { UilcilgeeIcon } from "@/components/icons/uilcilgee";
 import { ZahialgaIcon } from "@/components/icons/zahialga";
 import { ProfileIcon } from "@/components/icons/profile";
 import MessageIcon from "@/components/icons/zurwas";
+import { useSupabaseAuth } from "@/lib/supabase-auth";
 
 export default function TabLayout() {
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useSupabaseAuth();
   const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {

@@ -24,6 +24,9 @@ export const styles = StyleSheet.create({
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 14,
+    gap: 12,
+  },
+  orderMain: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -62,6 +65,36 @@ export const styles = StyleSheet.create({
   chevron: {
     fontSize: 22,
     color: "#8E8E8E",
+  },
+  orderActions: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  actionButton: {
+    flex: 1,
+    height: 40,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+  },
+  acceptButton: {
+    backgroundColor: "#1F1F1F",
+    borderColor: "#1F1F1F",
+  },
+  rejectButton: {
+    backgroundColor: "#FFFFFF",
+    borderColor: "#1F1F1F",
+  },
+  actionText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  actionTextDark: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#1F1F1F",
   },
   ...orderDetailStyles,
 });

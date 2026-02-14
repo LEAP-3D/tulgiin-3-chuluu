@@ -1,7 +1,8 @@
-import { useSignUp } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import * as React from "react";
 import { TextInput } from "react-native";
+import { supabase } from "@/lib/supabase";
+import { useSupabaseAuth } from "@/lib/supabase-auth";
 import { SignUpFormStep } from "./_components/sign-up-form-step";
 import { SignUpVerifyStep } from "./_components/sign-up-verify-step";
 
@@ -27,7 +28,7 @@ function getClerkErrorMessage(err: unknown, fallback: string): string {
 }
 
 export default function Page() {
-  const { isLoaded, signUp, setActive } = useSignUp();
+  const { isLoaded } = useSupabaseAuth();
   const router = useRouter();
   const apiBaseUrl =
     process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:3000";
@@ -49,46 +50,55 @@ export default function Page() {
     "role" | "details" | "area" | "personal"
   >("role");
 
-  const createProfile = React.useCallback(async () => {
-    const response = await fetch(`${apiBaseUrl}/profiles`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        role: userType ?? "user",
-        email: emailAddress.trim(),
-        phone_number: phoneNumber.trim(),
-        first_name: firstName.trim(),
-        last_name: lastName.trim(),
-        work_types:
-          userType === "worker" && workTypes.length > 0 ? workTypes : undefined,
-        service_area:
-          userType === "worker" && serviceAreas.length > 0
-            ? serviceAreas
-            : undefined,
-      }),
-    });
+  const createProfile = React.useCallback(
+    async (accessToken?: string | null, profileId?: string | null) => {
+      const response = await fetch(`${apiBaseUrl}/profiles`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        body: JSON.stringify({
+          ...(profileId ? { id: profileId } : {}),
+          role: userType ?? "user",
+          email: emailAddress.trim(),
+          phone_number: phoneNumber.trim(),
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          work_types:
+            userType === "worker" && workTypes.length > 0
+              ? workTypes
+              : undefined,
+          service_area:
+            userType === "worker" && serviceAreas.length > 0
+              ? serviceAreas
+              : undefined,
+        }),
+      });
 
-    if (!response.ok) {
-      const contentType = response.headers.get("content-type") ?? "";
-      const payload = contentType.includes("application/json")
-        ? await response.json().catch(() => null)
-        : await response.text().catch(() => "");
-      const message =
-        (typeof payload === "string" && payload.trim()) ||
-        payload?.error ||
-        `HTTP ${response.status}`;
-      throw new Error(message);
-    }
-  }, [
-    apiBaseUrl,
-    emailAddress,
-    phoneNumber,
-    firstName,
-    lastName,
-    userType,
-    workTypes,
-    serviceAreas,
-  ]);
+      if (!response.ok) {
+        const contentType = response.headers.get("content-type") ?? "";
+        const payload = contentType.includes("application/json")
+          ? await response.json().catch(() => null)
+          : await response.text().catch(() => "");
+        const message =
+          (typeof payload === "string" && payload.trim()) ||
+          payload?.error ||
+          `HTTP ${response.status}`;
+        throw new Error(message);
+      }
+    },
+    [
+      apiBaseUrl,
+      emailAddress,
+      phoneNumber,
+      firstName,
+      lastName,
+      userType,
+      workTypes,
+      serviceAreas,
+    ],
+  );
 
   const onSignUpPress = async () => {
     if (!isLoaded) return;
@@ -96,23 +106,16 @@ export default function Page() {
     setDebugInfo(null);
 
     try {
-      await signUp.create({
-        emailAddress: emailAddress.trim(),
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        unsafeMetadata: {
-          role: userType ?? undefined,
-          phoneNumber: phoneNumber.trim() || undefined,
-          workTypes: userType === "worker" ? workTypes : undefined,
-          serviceAreas: userType === "worker" ? serviceAreas : undefined,
-        },
+      const { error } = await supabase.auth.signInWithOtp({
+        email: emailAddress.trim(),
       });
-
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      if (error) throw error;
       setPendingVerification(true);
     } catch (err) {
       console.error(JSON.stringify(err, null, 2));
-      setErrorMessage(getClerkErrorMessage(err, "Sign up хийх үед алдаа гарлаа."));
+      setErrorMessage(
+        getClerkErrorMessage(err, "Sign up хийх үед алдаа гарлаа."),
+      );
       if (__DEV__) {
         try {
           setDebugInfo(JSON.stringify(err, null, 2));
@@ -129,43 +132,29 @@ export default function Page() {
     setDebugInfo(null);
 
     try {
-      const signUpAttempt = await signUp.attemptEmailAddressVerification({
-        code: code.trim(),
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: emailAddress.trim(),
+        token: code.trim(),
+        type: "email",
       });
 
-      if (signUpAttempt.status === "complete") {
-        try {
-          await createProfile();
-        } catch (err) {
-          console.error("Create profile failed:", err);
-          setErrorMessage(
-            getClerkErrorMessage(
-              err,
-              "Database рүү хадгалах үед алдаа гарлаа.",
-            ),
-          );
-          return;
-        }
-        setShowSuccess(true);
-        await setActive({ session: signUpAttempt.createdSessionId });
-        setTimeout(() => router.replace("/(tabs)/service"), 900);
+      if (error) throw error;
+      const accessToken = data?.session?.access_token ?? null;
+      const profileId = data?.session?.user?.id ?? null;
+      try {
+        await createProfile(accessToken, profileId);
+      } catch (err) {
+        console.error("Create profile failed:", err);
+        setErrorMessage(
+          getClerkErrorMessage(
+            err,
+            "Database рүү хадгалах үед алдаа гарлаа.",
+          ),
+        );
         return;
       }
-
-      console.error(JSON.stringify(signUpAttempt, null, 2));
-      setErrorMessage(
-        getClerkErrorMessage(
-          signUpAttempt,
-          "Баталгаажуулалт дуусаагүй байна. Кодоо шалгаад дахин оролдоно уу.",
-        ),
-      );
-      if (__DEV__) {
-        try {
-          setDebugInfo(JSON.stringify(signUpAttempt, null, 2));
-        } catch {
-          setDebugInfo("debugInfo stringify failed");
-        }
-      }
+      setShowSuccess(true);
+      setTimeout(() => router.replace("/(tabs)/service"), 900);
     } catch (err) {
       console.error(JSON.stringify(err, null, 2));
       setErrorMessage(

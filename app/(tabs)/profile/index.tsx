@@ -4,7 +4,7 @@ import ProfileScreen, {
   ProfileField,
 } from "@/components/_tabsComponents/_profileComponents";
 import { useRouter } from "expo-router";
-import { useUser } from "@clerk/clerk-expo";
+import { useSupabaseAuth } from "@/lib/supabase-auth";
 import { useSignOut } from "@/components/sign-out-button";
 import { useEffect, useMemo, useState } from "react";
 import { Alert } from "react-native";
@@ -62,7 +62,7 @@ const normalizeWorkTypes = (value: unknown): string[] => {
 
 export default function TabTwoScreen() {
   const router = useRouter();
-  const { user, isLoaded: isUserLoaded } = useUser();
+  const { user, isLoaded: isUserLoaded } = useSupabaseAuth();
   const apiBaseUrl =
     process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:3000";
   const [isEditing, setIsEditing] = useState(false);
@@ -82,7 +82,7 @@ export default function TabTwoScreen() {
 
   useEffect(() => {
     if (!isUserLoaded) return;
-    const email = user?.primaryEmailAddress?.emailAddress?.trim();
+    const email = user?.email?.trim();
     if (!email) return;
 
     setProfile((prev) => ({
@@ -135,7 +135,7 @@ export default function TabTwoScreen() {
     return () => {
       cancelled = true;
     };
-  }, [apiBaseUrl, isUserLoaded, user?.primaryEmailAddress?.emailAddress]);
+  }, [apiBaseUrl, isUserLoaded, user?.email]);
 
   const handleChangeField = (field: ProfileField, value: string) => {
     setProfile((prev) => ({ ...prev, [field]: value }));
