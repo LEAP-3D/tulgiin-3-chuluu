@@ -1,12 +1,9 @@
 import { Redirect, Tabs } from "expo-router";
 import { useEffect, useState } from "react";
-import { View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import Header from "@/components/_tabsComponents/_header/Header";
 import { HapticTab } from "@/components/haptic-tab";
-import { UilcilgeeIcon } from "@/components/icons/uilcilgee";
-import { ZahialgaIcon } from "@/components/icons/zahialga";
-import { ProfileIcon } from "@/components/icons/profile";
-import MessageIcon from "@/components/icons/zurwas";
 import { useSupabaseAuth } from "@/lib/supabase-auth";
 
 export default function TabLayout() {
@@ -37,29 +34,23 @@ export default function TabLayout() {
 
       <Tabs
         screenOptions={{
-          headerShown: false, // Expo Router default header унтраана
+          headerShown: false,
           tabBarButton: HapticTab,
           tabBarActiveTintColor: "#FF8A1E",
-          tabBarInactiveTintColor: "#8A8A8A",
-          tabBarStyle: {
-            backgroundColor: "#FFFFFF",
-            borderTopWidth: 1,
-            borderTopColor: "#E5E5E5",
-          },
-          tabBarLabelStyle: {
-            fontSize: 12,
-            fontWeight: "500",
-          },
+          tabBarInactiveTintColor: "#767676",
+          tabBarHideOnKeyboard: true,
+          tabBarStyle: styles.tabBar,
+          tabBarItemStyle: styles.tabItem,
+          tabBarLabelStyle: styles.tabLabel,
         }}
       >
-        {/* Tabs.Screen-үүд */}
         <Tabs.Screen
           name="service"
           options={{
             title: "Үйлчилгээ",
             tabBarIcon: ({ color }) => (
-              <View style={{ width: 24, height: 24, alignItems: "center", justifyContent: "center" }}>
-                <UilcilgeeIcon size={22} color={color} />
+              <View style={styles.iconWrap}>
+                <Ionicons name="construct-outline" size={24} color={color} />
               </View>
             ),
           }}
@@ -69,8 +60,8 @@ export default function TabLayout() {
           options={{
             title: "Захиалга",
             tabBarIcon: ({ color }) => (
-              <View style={{ width: 24, height: 24, alignItems: "center", justifyContent: "center" }}>
-                <ZahialgaIcon size={22} color={color} />
+              <View style={styles.iconWrap}>
+                <Ionicons name="copy-outline" size={24} color={color} />
               </View>
             ),
           }}
@@ -80,8 +71,8 @@ export default function TabLayout() {
           options={{
             title: "Зурвас",
             tabBarIcon: ({ color }) => (
-              <View style={{ width: 24, height: 24, alignItems: "center", justifyContent: "center" }}>
-                <MessageIcon width={22} height={22} color={color} />
+              <View style={styles.iconWrap}>
+                <Ionicons name="chatbubble-outline" size={24} color={color} />
               </View>
             ),
           }}
@@ -91,8 +82,8 @@ export default function TabLayout() {
           options={{
             title: "Профайл",
             tabBarIcon: ({ color }) => (
-              <View style={{ width: 24, height: 24, alignItems: "center", justifyContent: "center" }}>
-                <ProfileIcon size={22} color={color} />
+              <View style={styles.iconWrap}>
+                <Ionicons name="person-outline" size={24} color={color} />
               </View>
             ),
           }}
@@ -101,3 +92,31 @@ export default function TabLayout() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  tabBar: {
+    backgroundColor: "#FFFFFF",
+    borderTopWidth: 1,
+    borderTopColor: "#E6E6E6",
+    height: Platform.OS === "ios" ? 84 : 70,
+    paddingTop: 7,
+    paddingBottom: Platform.OS === "ios" ? 10 : 6,
+  },
+  tabItem: {
+    paddingVertical: 1,
+  },
+  tabLabel: {
+    fontSize: 11,
+    lineHeight: 13,
+    fontWeight: "500",
+    marginTop: 1,
+    marginBottom: 0,
+  },
+  iconWrap: {
+    width: 24,
+    height: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 1,
+  },
+});
