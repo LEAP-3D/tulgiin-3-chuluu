@@ -14,7 +14,7 @@ type OrdersListState = {
 };
 
 export function useOrdersList(apiBaseUrl: string): OrdersListState {
-  const { user, isLoaded: isUserLoaded } = useSupabaseAuth();
+  const { user, session, isLoaded: isUserLoaded } = useSupabaseAuth();
   const [orders, setOrders] = useState<OrderItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -31,8 +31,12 @@ export function useOrdersList(apiBaseUrl: string): OrdersListState {
       setIsLoading(true);
       setErrorMessage(null);
       try {
+        const authHeader = session?.access_token
+          ? { Authorization: `Bearer ${session.access_token}` }
+          : {};
         const profileResponse = await fetch(
           `${apiBaseUrl}/profiles?email=${encodeURIComponent(email)}`,
+          { headers: authHeader },
         );
         const profilePayload = await profileResponse.json().catch(() => null);
         if (!profileResponse.ok) {
@@ -52,7 +56,7 @@ export function useOrdersList(apiBaseUrl: string): OrdersListState {
         if (profileData?.role === "worker") {
           url = `${apiBaseUrl}/orders?worker_email=${encodeURIComponent(email)}`;
         }
-        const response = await fetch(url);
+        const response = await fetch(url, { headers: authHeader });
         const payload = await response.json().catch(() => null);
         if (!response.ok) {
           const message =
@@ -77,12 +81,15 @@ export function useOrdersList(apiBaseUrl: string): OrdersListState {
     return () => {
       cancelled = true;
     };
-  }, [apiBaseUrl, isUserLoaded, user?.email]);
+  }, [apiBaseUrl, isUserLoaded, user?.email, session?.access_token]);
 
   const updateOrderStatus = async (orderId: string, status: string) => {
+    const authHeader = session?.access_token
+      ? { Authorization: `Bearer ${session.access_token}` }
+      : {};
     const response = await fetch(`${apiBaseUrl}/orders/${orderId}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...authHeader },
       body: JSON.stringify({ status }),
     });
     const payload = await response.json().catch(() => null);

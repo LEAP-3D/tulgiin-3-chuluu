@@ -23,7 +23,7 @@ export type CreateOrderController = CreateOrderFormState &
 
 export function useCreateOrderController(): CreateOrderController {
   const insets = useSafeAreaInsets();
-  const { user, isLoaded: isUserLoaded } = useSupabaseAuth();
+  const { user, session, isLoaded: isUserLoaded } = useSupabaseAuth();
   const apiBaseUrl =
     process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:3000";
   const params = useLocalSearchParams<CreateOrderParams>();
@@ -34,6 +34,7 @@ export function useCreateOrderController(): CreateOrderController {
     apiBaseUrl,
     isUserLoaded,
     userEmail: user?.email ?? null,
+    accessToken: session?.access_token ?? null,
     selectedService,
     apiDate: formState.apiDate,
     district: formState.district,
