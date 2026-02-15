@@ -92,7 +92,7 @@ export function ChatView({
     try {
       await Clipboard.setStringAsync(orderIdToCopy);
       showToast("Захиалгын дугаарыг хууллаа.");
-    } catch (err) {
+    } catch {
       showToast("Хуулахад алдаа гарлаа.");
     }
   }, [orderIdToCopy, showToast]);

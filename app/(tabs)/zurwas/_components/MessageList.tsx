@@ -67,14 +67,6 @@ export const MessageList = React.forwardRef<MessageListHandle, Props>(
     }
   }, [messages.length, scrollToEnd]);
 
-  if (isLoading) {
-    return <Text style={styles.statusText}>Ачаалж байна...</Text>;
-  }
-
-  if (errorMessage) {
-    return <Text style={styles.statusText}>{errorMessage}</Text>;
-  }
-
   const renderItem = React.useCallback(
     ({ item, index }: { item: MessageItem; index: number }) => {
       const isMine = item.sender_profile_id === profileId;
@@ -105,6 +97,14 @@ export const MessageList = React.forwardRef<MessageListHandle, Props>(
   const typingFooter = isOtherTyping ? (
     <Text style={styles.typingText}>Бичиж байна...</Text>
   ) : null;
+
+  if (isLoading) {
+    return <Text style={styles.statusText}>Ачаалж байна...</Text>;
+  }
+
+  if (errorMessage) {
+    return <Text style={styles.statusText}>{errorMessage}</Text>;
+  }
 
   return (
     <FlatList
