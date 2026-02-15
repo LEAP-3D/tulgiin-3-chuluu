@@ -1,18 +1,26 @@
+import * as React from "react";
 import {
-  KeyboardAvoidingView,
+  Animated,
+  Keyboard,
   Platform,
-  Pressable,
-  ScrollView,
   Text,
-  TextInput,
   View,
 } from "react-native";
-import LeftArrowIcon from "@/components/icons/_serviceIcons/leftarrowIcon";
+import * as Clipboard from "expo-clipboard";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { MessageItem } from "./types";
-import { formatTime } from "./utils";
+import { ChatHeader } from "./ChatHeader";
+import type { MessageListHandle } from "./MessageList";
+import { MessageList } from "./MessageList";
+import { ChatInputBar } from "./ChatInputBar";
 import { styles } from "./styles";
 
 type Props = {
+  headerTitle: string;
+  headerSubtitle?: string;
+  headerMeta?: string;
+  headerAvatarUrl?: string | null;
+  orderIdToCopy?: string;
   messages: MessageItem[];
   profileId: string | null;
   isLoading: boolean;
@@ -28,6 +36,11 @@ type Props = {
 };
 
 export function ChatView({
+  headerTitle,
+  headerSubtitle,
+  headerMeta,
+  headerAvatarUrl,
+  orderIdToCopy,
   messages,
   profileId,
   isLoading,
@@ -41,87 +54,121 @@ export function ChatView({
   onInputBlur,
   onSend,
 }: Props) {
+  const insets = useSafeAreaInsets();
+  const messageListRef = React.useRef<MessageListHandle>(null);
+  const toastOpacity = React.useRef(new Animated.Value(0)).current;
+  const toastTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [toastMessage, setToastMessage] = React.useState<string | null>(null);
+  const [isKeyboardVisible, setIsKeyboardVisible] = React.useState(false);
+  const [keyboardHeight, setKeyboardHeight] = React.useState(0);
+
+  const showToast = React.useCallback(
+    (message: string) => {
+      setToastMessage(message);
+      if (toastTimerRef.current) {
+        clearTimeout(toastTimerRef.current);
+        toastTimerRef.current = null;
+      }
+      Animated.timing(toastOpacity, {
+        toValue: 1,
+        duration: 180,
+        useNativeDriver: true,
+      }).start();
+      toastTimerRef.current = setTimeout(() => {
+        Animated.timing(toastOpacity, {
+          toValue: 0,
+          duration: 180,
+          useNativeDriver: true,
+        }).start(() => {
+          setToastMessage(null);
+        });
+      }, 1400);
+    },
+    [toastOpacity],
+  );
+
+  const handleCopyOrderId = React.useCallback(async () => {
+    if (!orderIdToCopy) return;
+    try {
+      await Clipboard.setStringAsync(orderIdToCopy);
+      showToast("Захиалгын дугаарыг хууллаа.");
+    } catch (err) {
+      showToast("Хуулахад алдаа гарлаа.");
+    }
+  }, [orderIdToCopy, showToast]);
+
+  React.useEffect(() => {
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const showSub = Keyboard.addListener(showEvent, (event) => {
+      setIsKeyboardVisible(true);
+      setKeyboardHeight(event?.endCoordinates?.height ?? 0);
+      requestAnimationFrame(() => messageListRef.current?.scrollToEnd(true));
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setIsKeyboardVisible(false);
+      setKeyboardHeight(0);
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+      if (toastTimerRef.current) {
+        clearTimeout(toastTimerRef.current);
+      }
+    };
+  }, []);
+
+  const bottomInset = isKeyboardVisible ? 0 : insets.bottom;
+  const keyboardOffset = isKeyboardVisible ? keyboardHeight : 0;
+
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-    >
-      <View style={styles.headerRow}>
-        <Pressable style={styles.backButton} onPress={onBack}>
-          <LeftArrowIcon width={22} height={22} color="#1F1F1F" />
-        </Pressable>
-        <Text style={styles.title}>Зурвас</Text>
-      </View>
+    <View style={styles.container}>
+      <ChatHeader
+        title={headerTitle}
+        subtitle={headerSubtitle}
+        meta={headerMeta}
+        avatarUrl={headerAvatarUrl}
+        onBack={onBack}
+        onCopyOrderId={orderIdToCopy ? handleCopyOrderId : undefined}
+        topInset={insets.top}
+      />
+
+      {toastMessage && (
+        <Animated.View
+          style={[
+            styles.toastContainer,
+            { opacity: toastOpacity, top: insets.top + 70 },
+          ]}
+          pointerEvents="none"
+        >
+          <Text style={styles.toastText}>{toastMessage}</Text>
+        </Animated.View>
+      )}
 
       <View style={styles.chatContainer}>
-        {isLoading ? (
-          <Text style={styles.statusText}>Ачаалж байна...</Text>
-        ) : errorMessage ? (
-          <Text style={styles.statusText}>{errorMessage}</Text>
-        ) : (
-          <>
-            <ScrollView
-              contentContainerStyle={styles.messageList}
-              keyboardShouldPersistTaps="handled"
-            >
-              {messages.length === 0 ? (
-                <Text style={styles.emptyText}>Одоогоор зурвас алга.</Text>
-              ) : (
-                messages.map((message) => {
-                  const isMine = message.sender_profile_id === profileId;
-                  return (
-                    <View
-                      key={message.id}
-                      style={[
-                        styles.messageBubble,
-                        isMine ? styles.myBubble : styles.otherBubble,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.messageText,
-                          isMine ? styles.myText : styles.otherText,
-                        ]}
-                      >
-                        {message.body}
-                      </Text>
-                      <Text style={styles.timeText}>
-                        {formatTime(message.created_at)}
-                      </Text>
-                    </View>
-                  );
-                })
-              )}
-            </ScrollView>
-            {isOtherTyping && <Text style={styles.typingText}>Typing...</Text>}
-          </>
-        )}
+        <MessageList
+          ref={messageListRef}
+          messages={messages}
+          profileId={profileId}
+          isLoading={isLoading}
+          errorMessage={errorMessage}
+          isOtherTyping={isOtherTyping}
+        />
       </View>
 
-      <View style={styles.inputRow}>
-        <TextInput
-          style={styles.input}
-          placeholder="Мессеж бичих..."
-          placeholderTextColor="#9A9A9A"
-          value={messageInput}
-          onChangeText={onInputChange}
-          editable={!isLoading && !!isChatReady}
-          multiline
-          onBlur={onInputBlur}
+      <View style={{ marginBottom: keyboardOffset }}>
+        <ChatInputBar
+          messageInput={messageInput}
+          isSending={isSending}
+          isChatReady={isChatReady}
+          isLoading={isLoading}
+          onInputChange={onInputChange}
+          onInputFocus={() => messageListRef.current?.scrollToEnd(true)}
+          onInputBlur={onInputBlur}
+          onSend={onSend}
+          bottomInset={bottomInset}
         />
-        <Pressable
-          style={({ pressed }) => [
-            styles.sendButton,
-            pressed && styles.sendButtonPressed,
-            (!messageInput.trim() || isSending) && styles.sendButtonDisabled,
-          ]}
-          onPress={onSend}
-          disabled={!messageInput.trim() || isSending || !isChatReady}
-        >
-          <Text style={styles.sendText}>Илгээх</Text>
-        </Pressable>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }

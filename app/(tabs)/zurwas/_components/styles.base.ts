@@ -32,6 +32,13 @@ export const zurwasBaseStyles = {
     justifyContent: "space-between",
     alignItems: "center",
   },
+  listTitleRow: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingRight: 8,
+  },
   listContent: {
     flex: 1,
   },
@@ -52,6 +59,13 @@ export const zurwasBaseStyles = {
     fontSize: 15,
     fontWeight: "700",
     color: "#1F1F1F",
+    flexShrink: 1,
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#FF8A1E",
   },
   listRole: {
     marginTop: 2,
@@ -80,6 +94,29 @@ export const zurwasBaseStyles = {
     borderBottomWidth: 1,
     borderBottomColor: "#EFEFEF",
   },
+  headerContent: {
+    flex: 1,
+  },
+  headerAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#FF8A1E",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+  headerAvatarImage: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginRight: 10,
+  },
+  headerAvatarText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
   backButton: {
     padding: 6,
     marginRight: 8,
@@ -88,6 +125,46 @@ export const zurwasBaseStyles = {
     fontSize: 18,
     fontWeight: "600",
     color: "#1F1F1F",
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1F1F1F",
+  },
+  headerSubtitle: {
+    marginTop: 2,
+    fontSize: 12,
+    color: "#8C8C8C",
+  },
+  headerMeta: {
+    marginTop: 2,
+    fontSize: 11,
+    color: "#B0B0B0",
+    flexShrink: 1,
+  },
+  headerMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  copyButton: {
+    padding: 4,
+  },
+  toastContainer: {
+    position: "absolute",
+    top: 86,
+    left: 16,
+    right: 16,
+    backgroundColor: "#1F1F1F",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    zIndex: 10,
+  },
+  toastText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    textAlign: "center",
   },
   statusText: {
     color: "#7A7A7A",
