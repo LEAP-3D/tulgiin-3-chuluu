@@ -4,7 +4,7 @@ import { useSupabaseAuth } from "@/lib/supabase-auth";
 import { ChatView } from "./_components/ChatView";
 import { ConversationListView } from "./_components/ConversationListView";
 import { styles } from "./_components/styles";
-import { getParam } from "./_components/utils";
+import { getParam, getProfessionLabel } from "./_components/utils";
 import { useConversationList } from "./_components/useConversationList";
 import { useConversationThread } from "./_components/useConversationThread";
 import { useChatRealtime } from "./_components/useChatRealtime";
@@ -86,8 +86,23 @@ export default function ZurwasScreen() {
     );
   }
 
+  const otherProfileId = threadState.otherProfileId;
+  const otherProfile = threadState.otherProfile;
+  const headerTitle =
+    otherProfile?.name ?? `Чат • ${otherProfileId?.slice(0, 6) ?? "—"}`;
+  const headerSubtitle = otherProfile
+    ? getProfessionLabel(otherProfile)
+    : undefined;
+  const headerMeta = orderId ? `Захиалга: ${orderId}` : undefined;
+  const headerAvatarUrl = otherProfile?.avatarUrl ?? null;
+
   return (
     <ChatView
+      headerTitle={headerTitle}
+      headerSubtitle={headerSubtitle}
+      headerMeta={headerMeta}
+      headerAvatarUrl={headerAvatarUrl}
+      orderIdToCopy={orderId ?? undefined}
       messages={threadState.messages}
       profileId={profileId}
       isLoading={threadState.isLoading}

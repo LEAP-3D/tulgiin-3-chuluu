@@ -11,6 +11,7 @@ export type ProfileInfo = {
   name: string;
   role: "user" | "worker";
   workTypes: string[];
+  avatarUrl?: string | null;
 };
 
 export type MessageItem = {

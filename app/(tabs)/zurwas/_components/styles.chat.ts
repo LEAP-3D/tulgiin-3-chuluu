@@ -32,10 +32,19 @@ export const zurwasChatStyles = {
   otherText: {
     color: "#1F1F1F",
   },
-  timeText: {
+  messageMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
     marginTop: 4,
+  },
+  timeText: {
     fontSize: 11,
     color: "#B3B3B3",
+  },
+  readText: {
+    fontSize: 11,
+    color: "#8C8C8C",
   },
   typingText: {
     marginTop: 6,
