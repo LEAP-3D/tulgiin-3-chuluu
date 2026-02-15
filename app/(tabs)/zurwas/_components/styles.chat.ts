@@ -5,7 +5,7 @@ export const zurwasChatStyles = {
     paddingTop: 12,
   },
   messageList: {
-    paddingBottom: 12,
+    paddingBottom: 32,
     gap: 10,
   },
   messageBubble: {
@@ -47,11 +47,22 @@ export const zurwasChatStyles = {
     color: "#8C8C8C",
   },
   typingText: {
-    marginTop: 6,
-    marginBottom: 4,
     fontSize: 12,
     color: "#9A9A9A",
     fontStyle: "italic",
+  },
+  typingOverlay: {
+    position: "absolute",
+    left: 16,
+    right: 16,
+    bottom: 8,
+    alignItems: "flex-start",
+  },
+  typingBubble: {
+    backgroundColor: "#F3F3F3",
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
   },
   inputRow: {
     flexDirection: "row",

@@ -20,4 +20,18 @@ export default [
   {
     ignores: ["node_modules/**", "dist/**", "build/**"],
   },
+
+  // 200 мөрөөс урт файлд алдаа
+  {
+    rules: {
+      "max-lines": [
+        "error",
+        {
+          max: 200,
+          skipBlankLines: true,
+          skipComments: true,
+        },
+      ],
+    },
+  },
 ];
