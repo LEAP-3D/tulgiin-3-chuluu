@@ -17,6 +17,7 @@ export function useProfileData(apiBaseUrl: string): ProfileDataState {
     firstName: "",
     email: "",
     phone: "",
+    role: "user",
     workTypes: [],
     serviceAreas: [],
     avatarUrl: "https://cdn-icons-png.flaticon.com/512/4140/4140048.png",

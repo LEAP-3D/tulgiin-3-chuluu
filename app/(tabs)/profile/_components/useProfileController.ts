@@ -18,6 +18,7 @@ export type ProfileController = {
   onEditPress: () => void;
   onSavePress: () => void;
   onLogoutPress: () => void;
+  onRoleSwitchPress: () => void;
   onNotificationsPress: () => void;
   onCardLinkPress: () => void;
   onHelpPress: () => void;
@@ -34,12 +35,18 @@ export function useProfileController(): ProfileController {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [hasTriedSave, setHasTriedSave] = useState(false);
+  const [isSwitchingRole, setIsSwitchingRole] = useState(false);
 
   const onChangeField = (field: ProfileField, value: string) => {
     setProfile((prev) => ({ ...prev, [field]: value }));
   };
 
   const validationErrors = useMemo(() => getProfileErrors(profile), [profile]);
+  const resolvedRole =
+    profile.role ??
+    ((profile.workTypes?.length ?? 0) > 0 || (profile.serviceAreas?.length ?? 0) > 0
+      ? "worker"
+      : "user");
 
   const onEditPress = () => {
     setIsEditing((prev) => {
@@ -93,15 +100,76 @@ export function useProfileController(): ProfileController {
   };
 
   const onLogoutPress = useSignOut();
+  const onRoleSwitchPress = async () => {
+    const nextRole = resolvedRole === "worker" ? "user" : "worker";
+    if (!profile.email.trim()) {
+      Alert.alert("Алдаа", "Профайлын имэйл олдсонгүй.");
+      return;
+    }
+    if (nextRole === "worker") {
+      const workTypes = profile.workTypes ?? [];
+      const serviceAreas = profile.serviceAreas ?? [];
+      if (workTypes.length === 0 || serviceAreas.length === 0) {
+        Alert.alert(
+          "Засварчинаар нэвтрэх",
+          "Засварчнаар нэвтрэхийн тулд мэргэжил болон үйлчлэх бүсээ сонгоно уу.",
+        );
+        return;
+      }
+    }
+
+    setIsSwitchingRole(true);
+    try {
+      const response = await fetch(`${apiBaseUrl}/profiles`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          role: nextRole,
+          email: profile.email.trim(),
+          phone_number: profile.phone.trim(),
+          first_name: profile.firstName.trim(),
+          last_name: profile.lastName.trim(),
+          ...(nextRole === "worker"
+            ? { work_types: profile.workTypes ?? [], service_area: profile.serviceAreas ?? [] }
+            : {}),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorPayload = await response.json().catch(() => null);
+        const message =
+          errorPayload?.error ??
+          errorPayload?.message ??
+          `HTTP ${response.status}`;
+        throw new Error(message);
+      }
+
+      const result = await response.json().catch(() => null);
+      const data = result?.data;
+      if (data) {
+        setProfile((prev) => mergeProfileFromApi(prev, data));
+      } else {
+        setProfile((prev) => ({ ...prev, role: nextRole }));
+      }
+    } catch (err) {
+      Alert.alert(
+        "Алдаа",
+        err instanceof Error ? err.message : "Профайл солих үед алдаа гарлаа.",
+      );
+    } finally {
+      setIsSwitchingRole(false);
+    }
+  };
 
   return {
     profile,
     isEditing,
-    isSaving: isSaving || isLoadingProfile,
+    isSaving: isSaving || isLoadingProfile || isSwitchingRole,
     onChangeField,
     onEditPress,
     onSavePress,
     onLogoutPress,
+    onRoleSwitchPress,
     onNotificationsPress: () => Alert.alert("Мэдэгдэл", "Тун удахгүй."),
     onCardLinkPress: () => Alert.alert("Карт холбох", "Тун удахгүй."),
     onHelpPress: () => router.push("/profile/help"),

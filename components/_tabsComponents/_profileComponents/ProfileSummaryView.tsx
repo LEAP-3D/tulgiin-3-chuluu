@@ -8,6 +8,7 @@ type Props = {
   profile: ProfileData;
   onEditPress?: () => void;
   onLogoutPress?: () => void;
+  onRoleSwitchPress?: () => void;
   onNotificationsPress?: () => void;
   onCardLinkPress?: () => void;
   onHelpPress?: () => void;
@@ -18,11 +19,17 @@ export function ProfileSummaryView({
   profile,
   onEditPress,
   onLogoutPress,
+  onRoleSwitchPress,
   onNotificationsPress,
   onCardLinkPress,
   onHelpPress,
   onComplaintPress,
 }: Props) {
+  const isWorker =
+    profile.role === "worker" ||
+    (profile.workTypes?.length ?? 0) > 0 ||
+    (profile.serviceAreas?.length ?? 0) > 0;
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Pressable style={styles.profileCard} onPress={onEditPress}>
@@ -47,14 +54,18 @@ export function ProfileSummaryView({
         <Ionicons name="pencil-outline" size={18} color="#6B6B6B" />
       </Pressable>
 
-      <Pressable style={styles.infoCard}>
+      <Pressable style={styles.infoCard} onPress={onRoleSwitchPress}>
         <View style={styles.infoIcon}>
           <Ionicons name="construct-outline" size={18} color="#111" />
         </View>
         <View style={styles.infoTextWrap}>
-          <Text style={styles.infoTitle}>Засварчинаар нэвтрэх</Text>
+          <Text style={styles.infoTitle}>
+            {isWorker ? "Хэрэглэгчээр нэвтрэх" : "Засварчинаар нэвтрэх"}
+          </Text>
           <Text style={styles.infoDesc}>
-            Та засварчнаар нэвтэрээд нэмэлт орлого олоорой
+            {isWorker
+              ? "Та хэрэглэгчээр нэвтэрч захиалга өгч болно"
+              : "Та засварчнаар нэвтэрээд нэмэлт орлого олоорой"}
           </Text>
         </View>
       </Pressable>

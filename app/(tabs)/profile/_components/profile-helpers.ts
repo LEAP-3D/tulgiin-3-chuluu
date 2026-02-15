@@ -38,20 +38,22 @@ export const getProfileErrors = (profile: ProfileData): ProfileErrors => {
 export const buildProfilePayload = (profile: ProfileData) => {
   const workTypes = normalizeList(profile.workTypes);
   const serviceAreas = normalizeList(profile.serviceAreas);
-  const isWorker = workTypes.length > 0 || serviceAreas.length > 0;
+  const hasWorkerFields = workTypes.length > 0 || serviceAreas.length > 0;
+  const role = profile.role ?? (hasWorkerFields ? "worker" : "user");
 
   return {
-    role: isWorker ? "worker" : "user",
+    role,
     email: profile.email.trim(),
     phone_number: profile.phone.trim(),
     first_name: profile.firstName.trim(),
     last_name: profile.lastName.trim(),
-    ...(isWorker ? { work_types: workTypes, service_area: serviceAreas } : {}),
+    ...(role === "worker" ? { work_types: workTypes, service_area: serviceAreas } : {}),
   };
 };
 
 export const mergeProfileFromApi = (profile: ProfileData, data: any): ProfileData => ({
   ...profile,
+  role: data.role ?? profile.role,
   lastName: data.last_name ?? profile.lastName,
   firstName: data.first_name ?? profile.firstName,
   email: data.email ?? profile.email,
