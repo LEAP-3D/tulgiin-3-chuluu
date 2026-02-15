@@ -18,6 +18,16 @@
     ],
 
     /* Prevent false positives from base rule */
-    "no-unused-vars": "off"
+    "no-unused-vars": "off",
+
+    /* ❌ Error on files longer than 200 lines (excluding blanks/comments) */
+    "max-lines": [
+      "error",
+      {
+        "max": 200,
+        "skipBlankLines": true,
+        "skipComments": true
+      }
+    ]
   }
 }
