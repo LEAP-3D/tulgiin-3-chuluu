@@ -7,6 +7,7 @@ type Params = {
   apiBaseUrl: string;
   isUserLoaded: boolean;
   userEmail?: string | null;
+  accessToken?: string | null;
   selectedService: { key: string; label: string };
   apiDate: string;
   district: string;
@@ -31,6 +32,7 @@ export function useCreateOrderSubmit({
   apiBaseUrl,
   isUserLoaded,
   userEmail,
+  accessToken,
   selectedService,
   apiDate,
   district,
@@ -54,8 +56,12 @@ export function useCreateOrderSubmit({
       throw new Error("Хэрэглэгчийн имэйл олдсонгүй.");
     }
 
+    const authHeader = accessToken
+      ? { Authorization: `Bearer ${accessToken}` }
+      : {};
     const response = await fetch(
       `${apiBaseUrl}/profiles?email=${encodeURIComponent(email)}`,
+      { headers: authHeader },
     );
     if (!response.ok) {
       throw new Error(`Профайл татах үед алдаа гарлаа. HTTP ${response.status}`);
@@ -104,7 +110,10 @@ export function useCreateOrderSubmit({
 
         const response = await fetch(`${apiBaseUrl}/orders`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
           body: JSON.stringify(payload),
         });
         const result = await response.json().catch(() => null);
