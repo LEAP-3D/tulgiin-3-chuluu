@@ -13,6 +13,7 @@ export default function ProfileScreen({
   onEditPress,
   onSavePress,
   onLogoutPress,
+  onRoleSwitchPress,
   onNotificationsPress,
   onCardLinkPress,
   onHelpPress,
@@ -38,6 +39,7 @@ export default function ProfileScreen({
           profile={profile}
           onEditPress={onEditPress}
           onLogoutPress={onLogoutPress}
+          onRoleSwitchPress={onRoleSwitchPress}
           onNotificationsPress={onNotificationsPress}
           onCardLinkPress={onCardLinkPress}
           onHelpPress={onHelpPress}

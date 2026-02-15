@@ -3,6 +3,7 @@ export type ProfileData = {
   firstName: string;
   email: string;
   phone: string;
+  role?: "user" | "worker";
   workTypes?: string[];
   serviceAreas?: string[];
   avatarUrl?: string;
@@ -28,6 +29,7 @@ export type ProfileScreenProps = {
   onEditPress?: () => void;
   onSavePress?: () => void;
   onLogoutPress?: () => void;
+  onRoleSwitchPress?: () => void;
   onNotificationsPress?: () => void;
   onCardLinkPress?: () => void;
   onHelpPress?: () => void;
