@@ -106,6 +106,26 @@ export function useCreateOrderFormState(
     setErrors((prev) => ({ ...prev, khoroo: undefined }));
   };
 
+  const isSameWorker = (
+    current: SelectedWorker | null,
+    next: SelectedWorker | null,
+  ) => {
+    if (current === next) return true;
+    if (!current || !next) return false;
+    if (
+      current.id !== next.id ||
+      current.name !== next.name ||
+      current.rating !== next.rating ||
+      current.orders !== next.orders ||
+      current.years !== next.years ||
+      current.avatarUrl !== next.avatarUrl
+    ) {
+      return false;
+    }
+    if (current.areas.length !== next.areas.length) return false;
+    return current.areas.every((area, index) => area === next.areas[index]);
+  };
+
   useEffect(() => {
     const paramDate = typeof params.date === "string" ? params.date : "";
     if (!date && paramDate) {
@@ -133,7 +153,8 @@ export function useCreateOrderFormState(
     }
 
     const worker = parseSelectedWorker(params);
-    if (worker) setSelectedWorker(worker);
+    if (!worker) return;
+    setSelectedWorker((prev) => (isSameWorker(prev, worker) ? prev : worker));
   }, [params, address, date, description, district, khoroo, urgency]);
 
   return {
