@@ -19,11 +19,10 @@ type Props = {
   profileId: string | null;
   isLoading: boolean;
   errorMessage: string | null;
-  isOtherTyping: boolean;
 };
 
 export const MessageList = React.forwardRef<MessageListHandle, Props>(
-  ({ messages, profileId, isLoading, errorMessage, isOtherTyping }, ref) => {
+  ({ messages, profileId, isLoading, errorMessage }, ref) => {
   const listRef = React.useRef<FlatList<MessageItem>>(null);
   const isAtBottomRef = React.useRef(true);
   const didInitialScrollRef = React.useRef(false);
@@ -94,10 +93,6 @@ export const MessageList = React.forwardRef<MessageListHandle, Props>(
     [messages.length, profileId],
   );
 
-  const typingFooter = isOtherTyping ? (
-    <Text style={styles.typingText}>Бичиж байна...</Text>
-  ) : null;
-
   if (isLoading) {
     return <Text style={styles.statusText}>Ачаалж байна...</Text>;
   }
@@ -116,7 +111,6 @@ export const MessageList = React.forwardRef<MessageListHandle, Props>(
       ListEmptyComponent={
         <Text style={styles.emptyText}>Одоогоор зурвас алга.</Text>
       }
-      ListFooterComponent={typingFooter}
       onContentSizeChange={handleContentSizeChange}
       onLayout={handleLayout}
       onScroll={handleScroll}

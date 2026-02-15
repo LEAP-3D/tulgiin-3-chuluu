@@ -152,8 +152,14 @@ export function ChatView({
           profileId={profileId}
           isLoading={isLoading}
           errorMessage={errorMessage}
-          isOtherTyping={isOtherTyping}
         />
+        {isOtherTyping && (
+          <View style={styles.typingOverlay} pointerEvents="none">
+            <View style={styles.typingBubble}>
+              <Text style={styles.typingText}>Бичиж байна...</Text>
+            </View>
+          </View>
+        )}
       </View>
 
       <View style={{ marginBottom: keyboardOffset }}>
