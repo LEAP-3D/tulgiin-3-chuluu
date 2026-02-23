@@ -3,8 +3,8 @@ import * as React from "react";
 import { TextInput } from "react-native";
 import { supabase } from "@/lib/supabase";
 import { useSupabaseAuth } from "@/lib/supabase-auth";
-import { SignInCodeStep } from "./_components/sign-in-code-step";
-import { SignInEmailStep } from "./_components/sign-in-email-step";
+import { SignInCodeStep } from "@/features/auth/_components/sign-in-code-step";
+import { SignInEmailStep } from "@/features/auth/_components/sign-in-email-step";
 
 export default function Page() {
   const { isSignedIn, isLoaded } = useSupabaseAuth();

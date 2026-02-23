@@ -1,6 +1,6 @@
-import { SignUpFormStep } from "./_components/sign-up-form-step";
-import { SignUpVerifyStep } from "./_components/sign-up-verify-step";
-import { useSignUpController } from "./_components/sign-up/useSignUpController";
+import { SignUpFormStep } from "@/features/auth/_components/sign-up-form-step";
+import { SignUpVerifyStep } from "@/features/auth/_components/sign-up-verify-step";
+import { useSignUpController } from "@/features/auth/_components/sign-up/useSignUpController";
 
 export default function Page() {
   const controller = useSignUpController();

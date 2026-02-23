@@ -2,12 +2,12 @@ import { useState } from "react";
 import { useRouter } from "expo-router";
 import { ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { styles } from "./order.styles";
-import { useOrdersList } from "./_components/useOrdersList";
-import { useOrderDetail } from "./_components/useOrderDetail";
-import { OrderListView } from "./_components/OrderListView";
-import { OrderDetailView } from "./_components/OrderDetailView";
-import type { OrderItem } from "./_components/types";
+import { styles } from "@/features/order/order.styles";
+import { useOrdersList } from "@/features/order/_components/useOrdersList";
+import { useOrderDetail } from "@/features/order/_components/useOrderDetail";
+import { OrderListView } from "@/features/order/_components/OrderListView";
+import { OrderDetailView } from "@/features/order/_components/OrderDetailView";
+import type { OrderItem } from "@/features/order/_components/types";
 
 export default function OrderScreen() {
   const router = useRouter();
