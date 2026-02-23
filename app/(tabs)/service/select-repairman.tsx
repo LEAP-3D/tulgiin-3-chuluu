@@ -1,5 +1,5 @@
-import { SelectRepairmanView } from "./_components/select-repairman/SelectRepairmanView";
-import { useSelectRepairmanController } from "./_components/select-repairman/useSelectRepairmanController";
+import { SelectRepairmanView } from "@/features/service/_components/select-repairman/SelectRepairmanView";
+import { useSelectRepairmanController } from "@/features/service/_components/select-repairman/useSelectRepairmanController";
 
 export default function SelectRepairmanScreen() {
   const controller = useSelectRepairmanController();
