@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -24,6 +24,16 @@ export default function OrderScreen() {
     ordersState.profileRole,
   );
 
+  useEffect(() => {
+    if (!showDetail || !selectedOrder?.id) return;
+    const updated = ordersState.orders.find(
+      (order) => order.id === selectedOrder.id,
+    );
+    if (updated && updated !== selectedOrder) {
+      setSelectedOrder(updated);
+    }
+  }, [ordersState.orders, selectedOrder?.id, showDetail]);
+
   const isWorkerView = ordersState.profileRole === "worker";
 
   return (
@@ -39,17 +49,25 @@ export default function OrderScreen() {
             errorMessage={ordersState.errorMessage}
             profileRole={ordersState.profileRole}
             profileId={ordersState.profileId}
+            updatingOrderId={ordersState.updatingOrderId}
+            updatingStatus={ordersState.updatingStatus}
             onSelectOrder={(order) => {
               setSelectedOrder(order);
               setShowDetail(true);
             }}
             onAccept={ordersState.acceptOrder}
             onReject={ordersState.rejectOrder}
+            onEnRoute={ordersState.setEnRoute}
+            onInProgress={ordersState.setInProgress}
+            onComplete={ordersState.setCompleted}
+            onCancel={ordersState.cancelOrder}
           />
         ) : (
           <OrderDetailView
             selectedOrder={selectedOrder}
             isWorkerView={isWorkerView}
+            profileRole={ordersState.profileRole}
+            profileId={ordersState.profileId}
             worker={detailState.worker}
             isWorkerLoading={detailState.isWorkerLoading}
             workerError={detailState.workerError}
@@ -58,6 +76,8 @@ export default function OrderScreen() {
             customerError={detailState.customerError}
             attachments={detailState.attachments}
             timeline={detailState.timeline}
+            updatingOrderId={ordersState.updatingOrderId}
+            updatingStatus={ordersState.updatingStatus}
             onBack={() => setShowDetail(false)}
             onChat={() => {
               if (!selectedOrder?.id) return;
@@ -70,6 +90,12 @@ export default function OrderScreen() {
                 },
               });
             }}
+            onAccept={ordersState.acceptOrder}
+            onReject={ordersState.rejectOrder}
+            onEnRoute={ordersState.setEnRoute}
+            onInProgress={ordersState.setInProgress}
+            onComplete={ordersState.setCompleted}
+            onCancel={ordersState.cancelOrder}
           />
         )}
       </ScrollView>

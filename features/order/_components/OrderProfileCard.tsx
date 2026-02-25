@@ -1,4 +1,4 @@
-import { Image, Pressable, Text, View } from "react-native";
+import { Alert, Image, Linking, Pressable, Text, View } from "react-native";
 import CallIcon from "@/components/icons/call";
 import { SERVICE_LABELS } from "@/constants/services";
 import { formatAreas } from "@/lib/utils/formatAreas";
@@ -28,6 +28,8 @@ export function OrderProfileCard({
   const profileName = isWorkerView
     ? customer?.name ?? "Хэрэглэгч"
     : worker?.name ?? "Засварчин";
+  const phoneNumber = isWorkerView ? customer?.phone ?? "" : "";
+  const canCall = phoneNumber.trim().length > 0;
   const serviceLabel = selectedOrder?.service_label
     ? `${selectedOrder.service_label} мэргэжилтэн`
     : selectedOrder?.service_key
@@ -105,10 +107,34 @@ export function OrderProfileCard({
           <Text style={orderDetailStyles.messageText}>Зурвас</Text>
         </Pressable>
         <Pressable
+          disabled={!canCall}
           style={({ pressed }) => [
             orderDetailStyles.callButton,
-            pressed && orderDetailStyles.callPressed,
+            !canCall && orderDetailStyles.callDisabled,
+            pressed && canCall && orderDetailStyles.callPressed,
           ]}
+          onPress={() => {
+            if (!canCall) return;
+            const normalized = phoneNumber.replace(/[^\d+]/g, "");
+            const url = `tel:${normalized}`;
+            Linking.canOpenURL(url)
+              .then((supported) => {
+                if (!supported) {
+                  Alert.alert(
+                    "Алдаа",
+                    "Энэ төхөөрөмж дээр утасны дуудлага нээх боломжгүй байна.",
+                  );
+                  return;
+                }
+                return Linking.openURL(url);
+              })
+              .catch(() => {
+                Alert.alert(
+                  "Алдаа",
+                  "Дуудлага нээх үед алдаа гарлаа. Дахин оролдоно уу.",
+                );
+              });
+          }}
         >
           <CallIcon width={22} height={22} color="#FFFFFF" />
         </Pressable>

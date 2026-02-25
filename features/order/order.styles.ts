@@ -78,6 +78,9 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 1,
   },
+  actionButtonDisabled: {
+    opacity: 0.6,
+  },
   acceptButton: {
     backgroundColor: "#1F1F1F",
     borderColor: "#1F1F1F",

@@ -41,4 +41,5 @@ export type TimelineItem = {
   title: string;
   time: string;
   active: boolean;
+  tone?: "danger";
 };

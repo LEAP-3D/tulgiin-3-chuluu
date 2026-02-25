@@ -148,6 +148,9 @@ export const orderDetailBase = {
     alignItems: "center",
     justifyContent: "center",
   },
+  callDisabled: {
+    backgroundColor: "#BDBDBD",
+  },
   callPressed: {
     opacity: 0.75,
   },

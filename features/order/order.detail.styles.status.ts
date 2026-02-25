@@ -28,6 +28,9 @@ export const orderDetailStatus = {
   statusDotActive: {
     backgroundColor: "#2AA928",
   },
+  statusDotDanger: {
+    backgroundColor: "#D64545",
+  },
   statusLine: {
     flex: 1,
     width: 2,
@@ -43,6 +46,10 @@ export const orderDetailStatus = {
     color: "#1F1F1F",
   },
   statusTextActive: {
+    fontWeight: "600",
+  },
+  statusTextDanger: {
+    color: "#D64545",
     fontWeight: "600",
   },
   statusTime: {
