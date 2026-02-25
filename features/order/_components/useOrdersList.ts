@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Alert, AppState } from "react-native";
 import { useSupabaseAuth } from "@/lib/supabase-auth";
 import type { OrderItem } from "./types";
 import { mapOrder } from "./helpers";
@@ -9,9 +10,23 @@ type OrdersListState = {
   errorMessage: string | null;
   profileId: string | null;
   profileRole: "user" | "worker" | null;
+  updatingOrderId: string | null;
+  updatingStatus: string | null;
   acceptOrder: (orderId: string) => Promise<void>;
   rejectOrder: (orderId: string) => Promise<void>;
+  setEnRoute: (orderId: string) => Promise<void>;
+  setInProgress: (orderId: string) => Promise<void>;
+  setCompleted: (orderId: string) => Promise<void>;
+  cancelOrder: (orderId: string) => Promise<void>;
 };
+
+type StatusTimestampField =
+  | "accepted_at"
+  | "rejected_at"
+  | "cancelled_at"
+  | "en_route_at"
+  | "in_progress_at"
+  | "completed_at";
 
 export function useOrdersList(apiBaseUrl: string): OrdersListState {
   const { user, session, isLoaded: isUserLoaded } = useSupabaseAuth();
@@ -20,16 +35,50 @@ export function useOrdersList(apiBaseUrl: string): OrdersListState {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [profileRole, setProfileRole] = useState<"user" | "worker" | null>(null);
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const isFetchingRef = useRef(false);
+  const isMountedRef = useRef(true);
+  const appStateRef = useRef(AppState.currentState);
+  const refreshIntervalMs = 15000;
+
+  const statusTimestampMap: Partial<Record<string, StatusTimestampField>> = {
+    accepted: "accepted_at",
+    rejected: "rejected_at",
+    cancelled: "cancelled_at",
+    en_route: "en_route_at",
+    in_progress: "in_progress_at",
+    completed: "completed_at",
+  };
+
+  const statusSuccessMessages: Partial<Record<string, string>> = {
+    accepted: "Захиалгыг хүлээн авлаа.",
+    rejected: "Захиалгыг татгалзлаа.",
+    cancelled: "Захиалгыг цуцаллаа.",
+    en_route: "Засварчин явж байна гэж шинэчлэгдлээ.",
+    in_progress: "Ажил эхэлсэн гэж шинэчлэгдлээ.",
+    completed: "Ажил дууссан гэж шинэчлэгдлээ.",
+  };
 
   useEffect(() => {
-    if (!isUserLoaded) return;
-    const email = user?.email?.trim();
-    if (!email) return;
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
-    let cancelled = false;
-    const load = async () => {
-      setIsLoading(true);
-      setErrorMessage(null);
+  const loadOrders = useCallback(
+    async (options?: { silent?: boolean }) => {
+      if (!isUserLoaded) return;
+      const email = user?.email?.trim();
+      if (!email) return;
+      if (isFetchingRef.current) return;
+
+      isFetchingRef.current = true;
+      if (!options?.silent) {
+        setIsLoading(true);
+      }
+
       try {
         const authHeader = session?.access_token
           ? { Authorization: `Bearer ${session.access_token}` }
@@ -47,7 +96,7 @@ export function useOrdersList(apiBaseUrl: string): OrdersListState {
           throw new Error(message);
         }
         const profileData = profilePayload?.data ?? null;
-        if (profileData && !cancelled) {
+        if (profileData && isMountedRef.current) {
           setProfileId(String(profileData.id ?? ""));
           setProfileRole(profileData.role === "worker" ? "worker" : "user");
         }
@@ -65,42 +114,102 @@ export function useOrdersList(apiBaseUrl: string): OrdersListState {
         }
         const data = Array.isArray(payload?.data) ? payload.data : [];
         const mapped = data.map(mapOrder);
-        if (!cancelled) setOrders(mapped);
+        if (isMountedRef.current) {
+          setOrders(mapped);
+          setErrorMessage(null);
+        }
       } catch (err) {
-        if (!cancelled) {
+        if (!options?.silent && isMountedRef.current) {
           setErrorMessage(
-            err instanceof Error ? err.message : "Захиалга татах үед алдаа гарлаа.",
+            err instanceof Error
+              ? err.message
+              : "Захиалга татах үед алдаа гарлаа.",
           );
         }
       } finally {
-        if (!cancelled) setIsLoading(false);
+        if (!options?.silent && isMountedRef.current) {
+          setIsLoading(false);
+        }
+        isFetchingRef.current = false;
       }
-    };
+    },
+    [apiBaseUrl, isUserLoaded, user?.email, session?.access_token],
+  );
 
-    load();
+  useEffect(() => {
+    loadOrders();
+  }, [loadOrders]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      appStateRef.current = nextState;
+      if (nextState === "active") {
+        loadOrders({ silent: true });
+      }
+    });
+
     return () => {
-      cancelled = true;
+      subscription.remove();
     };
-  }, [apiBaseUrl, isUserLoaded, user?.email, session?.access_token]);
+  }, [loadOrders]);
+
+  useEffect(() => {
+    if (!isUserLoaded) return;
+    if (!user?.email) return;
+    if (appStateRef.current !== "active") return;
+
+    const intervalId = setInterval(() => {
+      if (updatingOrderId) return;
+      loadOrders({ silent: true });
+    }, refreshIntervalMs);
+
+    return () => clearInterval(intervalId);
+  }, [isUserLoaded, user?.email, updatingOrderId, loadOrders]);
 
   const updateOrderStatus = async (orderId: string, status: string) => {
+    setUpdatingOrderId(orderId);
+    setUpdatingStatus(status);
     const authHeader = session?.access_token
       ? { Authorization: `Bearer ${session.access_token}` }
       : {};
-    const response = await fetch(`${apiBaseUrl}/orders/${orderId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", ...authHeader },
-      body: JSON.stringify({ status }),
-    });
-    const payload = await response.json().catch(() => null);
-    if (!response.ok) {
-      const message =
-        payload?.error ?? payload?.message ?? `HTTP ${response.status}`;
-      throw new Error(message);
+    try {
+      const response = await fetch(`${apiBaseUrl}/orders/${orderId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", ...authHeader },
+        body: JSON.stringify({ status }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        const message =
+          payload?.error ?? payload?.message ?? `HTTP ${response.status}`;
+        throw new Error(message);
+      }
+      const updatedOrder = payload?.data ? mapOrder(payload.data) : null;
+      const timestampField = statusTimestampMap[status];
+      setOrders((prev) =>
+        prev.map((item) => {
+          if (item.id !== orderId) return item;
+          if (updatedOrder) return updatedOrder;
+          const next: OrderItem = { ...item, status };
+          if (timestampField) {
+            next[timestampField] = new Date().toISOString();
+          }
+          return next;
+        }),
+      );
+      const successMessage =
+        statusSuccessMessages[status] ?? "Статус амжилттай шинэчлэгдлээ.";
+      Alert.alert("Амжилттай", successMessage);
+    } catch (err) {
+      Alert.alert(
+        "Алдаа",
+        err instanceof Error ? err.message : "Захиалга шинэчлэх үед алдаа гарлаа.",
+      );
+      throw err;
+    } finally {
+      setUpdatingOrderId(null);
+      setUpdatingStatus(null);
     }
-    setOrders((prev) =>
-      prev.map((item) => (item.id === orderId ? { ...item, status } : item)),
-    );
   };
 
   const acceptOrder = async (orderId: string) => {
@@ -119,13 +228,51 @@ export function useOrdersList(apiBaseUrl: string): OrdersListState {
     }
   };
 
+  const setEnRoute = async (orderId: string) => {
+    try {
+      await updateOrderStatus(orderId, "en_route");
+    } catch {
+      // ignore for now
+    }
+  };
+
+  const setInProgress = async (orderId: string) => {
+    try {
+      await updateOrderStatus(orderId, "in_progress");
+    } catch {
+      // ignore for now
+    }
+  };
+
+  const setCompleted = async (orderId: string) => {
+    try {
+      await updateOrderStatus(orderId, "completed");
+    } catch {
+      // ignore for now
+    }
+  };
+
+  const cancelOrder = async (orderId: string) => {
+    try {
+      await updateOrderStatus(orderId, "cancelled");
+    } catch {
+      // ignore for now
+    }
+  };
+
   return {
     orders,
     isLoading,
     errorMessage,
     profileId,
     profileRole,
+    updatingOrderId,
+    updatingStatus,
     acceptOrder,
     rejectOrder,
+    setEnRoute,
+    setInProgress,
+    setCompleted,
+    cancelOrder,
   };
 }

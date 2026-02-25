@@ -26,6 +26,13 @@ export const mapOrder = (item: any): OrderItem => ({
 });
 
 export const buildTimeline = (order: OrderItem | null): TimelineItem[] => {
+  const isCancelled = order?.status === "cancelled";
+  const isRejected = order?.status === "rejected";
+  const hasTime = (value?: string | null) => {
+    if (!value) return false;
+    const date = new Date(value);
+    return !Number.isNaN(date.getTime());
+  };
   const status = order?.status ?? "pending";
   const statusOrder = [
     "pending",
@@ -36,34 +43,143 @@ export const buildTimeline = (order: OrderItem | null): TimelineItem[] => {
   ];
   const currentIndex = statusOrder.indexOf(status);
   const activeIndex = currentIndex === -1 ? 0 : currentIndex;
-  return [
+  const isActive = (index: number, value?: string | null) =>
+    hasTime(value) || index <= activeIndex;
+
+  const baseItems: TimelineItem[] = [
     {
       title: "Захиалга илгээгдсэн",
       time: formatTime(order?.created_at),
-      active: activeIndex >= 0,
+      active: isActive(0, order?.created_at),
     },
     {
       title: "Засварчин хүлээн авсан",
       time: formatTime(order?.accepted_at),
-      active: activeIndex >= 1,
+      active: isActive(1, order?.accepted_at),
     },
     {
       title: "Засварчин явж байна",
       time: formatTime(order?.en_route_at),
-      active: activeIndex >= 2,
+      active: isActive(2, order?.en_route_at),
     },
     {
       title: "Ажил эхэлсэн",
       time: formatTime(order?.in_progress_at),
-      active: activeIndex >= 3,
+      active: isActive(3, order?.in_progress_at),
     },
     {
       title: "Ажил дууссан",
       time: formatTime(order?.completed_at),
-      active: activeIndex >= 4,
+      active: isActive(4, order?.completed_at),
     },
   ];
+
+  if (isCancelled) {
+    baseItems.push({
+      title: "Цуцлагдсан",
+      time: formatTime(order?.cancelled_at),
+      active: true,
+      tone: "danger",
+    });
+  }
+
+  if (isRejected) {
+    baseItems.push({
+      title: "Татгалзсан",
+      time: formatTime(order?.rejected_at),
+      active: true,
+      tone: "danger",
+    });
+  }
+
+  return baseItems;
 };
 
 export const getStatusText = (status?: string | null) =>
   (status && STATUS_LABELS[status]) ?? STATUS_LABELS.pending;
+
+export type WorkerActionConfig = {
+  label: string;
+  status:
+    | "accepted"
+    | "rejected"
+    | "cancelled"
+    | "en_route"
+    | "in_progress"
+    | "completed";
+  confirm?: {
+    title: string;
+    message: string;
+  };
+};
+
+export type WorkerActions = {
+  primary?: WorkerActionConfig;
+  secondary?: WorkerActionConfig;
+};
+
+export const getWorkerActions = (
+  order: OrderItem | null,
+  profileRole: "user" | "worker" | null,
+  profileId: string | null,
+): WorkerActions | null => {
+  if (!order) return null;
+  const isWorkerOwner =
+    profileRole === "worker" &&
+    !!order.worker_profile_id &&
+    order.worker_profile_id === profileId;
+  if (!isWorkerOwner) return null;
+
+  switch (order.status) {
+    case "pending":
+      return {
+        primary: { label: "Хүлээн авах", status: "accepted" },
+        secondary: {
+          label: "Татгалзах",
+          status: "rejected",
+          confirm: {
+            title: "Захиалга татгалзах уу?",
+            message: "Та энэ захиалгыг татгалзахдаа итгэлтэй байна уу?",
+          },
+        },
+      };
+    case "accepted":
+      return {
+        primary: { label: "Явж байна", status: "en_route" },
+        secondary: {
+          label: "Цуцлах",
+          status: "cancelled",
+          confirm: {
+            title: "Захиалга цуцлах уу?",
+            message: "Та энэ захиалгыг цуцлахдаа итгэлтэй байна уу?",
+          },
+        },
+      };
+    case "en_route":
+      return {
+        primary: { label: "Ажил эхлүүлэх", status: "in_progress" },
+        secondary: {
+          label: "Цуцлах",
+          status: "cancelled",
+          confirm: {
+            title: "Захиалга цуцлах уу?",
+            message: "Та энэ захиалгыг цуцлахдаа итгэлтэй байна уу?",
+          },
+        },
+      };
+    case "in_progress":
+      return {
+        primary: { label: "Дуусгах", status: "completed" },
+        secondary: {
+          label: "Цуцлах",
+          status: "cancelled",
+          confirm: {
+            title: "Захиалга цуцлах уу?",
+            message: "Та энэ захиалгыг цуцлахдаа итгэлтэй байна уу?",
+          },
+        },
+      };
+    default:
+      return null;
+  }
+};
