@@ -44,6 +44,7 @@ export function CreateOrderView({ controller }: { controller: CreateOrderControl
     handlePrimaryAction,
     handleBack,
   } = controller;
+  const hasWorker = !!selectedWorker;
 
   return (
     <View style={baseStyles.container}>
@@ -51,7 +52,7 @@ export function CreateOrderView({ controller }: { controller: CreateOrderControl
       <ScrollView
         contentContainerStyle={[
           baseStyles.content,
-          { paddingBottom: 40 + insetsBottom },
+          { paddingBottom: (hasWorker ? 136 : 40) + insetsBottom },
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -126,13 +127,32 @@ export function CreateOrderView({ controller }: { controller: CreateOrderControl
           <WorkerCard worker={selectedWorker} serviceLabel={selectedService.label} />
         ) : null}
 
-        <SubmitSection
-          isSubmitting={controller.isSubmitting}
-          hasWorker={!!selectedWorker}
-          submitError={controller.submitError}
-          onPress={handlePrimaryAction}
-        />
+        {!hasWorker ? (
+          <SubmitSection
+            isSubmitting={controller.isSubmitting}
+            hasWorker={false}
+            submitError={controller.submitError}
+            onPress={handlePrimaryAction}
+          />
+        ) : null}
       </ScrollView>
+
+      {hasWorker ? (
+        <View
+          style={[
+            baseStyles.submitStickyBar,
+            { paddingBottom: Math.max(insetsBottom, 12) },
+          ]}
+        >
+          <SubmitSection
+            isSubmitting={controller.isSubmitting}
+            hasWorker
+            submitError={controller.submitError}
+            onPress={handlePrimaryAction}
+            isSticky
+          />
+        </View>
+      ) : null}
     </View>
   );
 }

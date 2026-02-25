@@ -159,6 +159,16 @@ export const baseStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  submitButtonSticky: {
+    marginTop: 8,
+  },
+  submitStickyBar: {
+    borderTopWidth: 1,
+    borderTopColor: "#EAEAEA",
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 20,
+    paddingTop: 8,
+  },
   submitButtonSelected: {
     backgroundColor: "#F59E0B",
   },
