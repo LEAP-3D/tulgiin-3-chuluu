@@ -58,9 +58,11 @@ export function ChatView({
   const messageListRef = React.useRef<MessageListHandle>(null);
   const toastOpacity = React.useRef(new Animated.Value(0)).current;
   const toastTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollRetryTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const [toastMessage, setToastMessage] = React.useState<string | null>(null);
   const [isKeyboardVisible, setIsKeyboardVisible] = React.useState(false);
   const [keyboardHeight, setKeyboardHeight] = React.useState(0);
+  const lastMessageIdRef = React.useRef<string | null>(null);
 
   const showToast = React.useCallback(
     (message: string) => {
@@ -115,8 +117,28 @@ export function ChatView({
       if (toastTimerRef.current) {
         clearTimeout(toastTimerRef.current);
       }
+      if (scrollRetryTimerRef.current) {
+        clearTimeout(scrollRetryTimerRef.current);
+      }
     };
   }, []);
+
+  React.useEffect(() => {
+    const latestMessageId = messages[messages.length - 1]?.id ?? null;
+    if (!latestMessageId) {
+      lastMessageIdRef.current = null;
+      return;
+    }
+    if (lastMessageIdRef.current === latestMessageId) return;
+    lastMessageIdRef.current = latestMessageId;
+    requestAnimationFrame(() => messageListRef.current?.scrollToEnd(true));
+    if (scrollRetryTimerRef.current) {
+      clearTimeout(scrollRetryTimerRef.current);
+    }
+    scrollRetryTimerRef.current = setTimeout(() => {
+      messageListRef.current?.scrollToEnd(false);
+    }, 120);
+  }, [messages]);
 
   const bottomInset = isKeyboardVisible ? 0 : insets.bottom;
   const keyboardOffset = isKeyboardVisible ? keyboardHeight : 0;
@@ -152,14 +174,8 @@ export function ChatView({
           profileId={profileId}
           isLoading={isLoading}
           errorMessage={errorMessage}
+          isOtherTyping={isOtherTyping}
         />
-        {isOtherTyping && (
-          <View style={styles.typingOverlay} pointerEvents="none">
-            <View style={styles.typingBubble}>
-              <Text style={styles.typingText}>Бичиж байна...</Text>
-            </View>
-          </View>
-        )}
       </View>
 
       <View style={{ marginBottom: keyboardOffset }}>

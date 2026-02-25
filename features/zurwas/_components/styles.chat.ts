@@ -51,12 +51,9 @@ export const zurwasChatStyles = {
     color: "#9A9A9A",
     fontStyle: "italic",
   },
-  typingOverlay: {
-    position: "absolute",
-    left: 16,
-    right: 16,
-    bottom: 8,
+  typingFooter: {
     alignItems: "flex-start",
+    marginTop: 4,
   },
   typingBubble: {
     backgroundColor: "#F3F3F3",

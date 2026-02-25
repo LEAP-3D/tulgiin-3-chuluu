@@ -25,14 +25,13 @@ export default function OrderScreen() {
   );
 
   useEffect(() => {
-    if (!showDetail || !selectedOrder?.id) return;
-    const updated = ordersState.orders.find(
-      (order) => order.id === selectedOrder.id,
-    );
-    if (updated && updated !== selectedOrder) {
-      setSelectedOrder(updated);
-    }
-  }, [ordersState.orders, selectedOrder?.id, showDetail]);
+    if (!showDetail) return;
+    setSelectedOrder((current) => {
+      if (!current?.id) return current;
+      const updated = ordersState.orders.find((order) => order.id === current.id);
+      return updated && updated !== current ? updated : current;
+    });
+  }, [ordersState.orders, showDetail]);
 
   const isWorkerView = ordersState.profileRole === "worker";
 

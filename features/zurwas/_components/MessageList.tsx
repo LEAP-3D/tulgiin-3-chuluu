@@ -19,10 +19,11 @@ type Props = {
   profileId: string | null;
   isLoading: boolean;
   errorMessage: string | null;
+  isOtherTyping: boolean;
 };
 
 export const MessageList = React.forwardRef<MessageListHandle, Props>(
-  ({ messages, profileId, isLoading, errorMessage }, ref) => {
+  ({ messages, profileId, isLoading, errorMessage, isOtherTyping }, ref) => {
   const listRef = React.useRef<FlatList<MessageItem>>(null);
   const isAtBottomRef = React.useRef(true);
   const didInitialScrollRef = React.useRef(false);
@@ -110,6 +111,15 @@ export const MessageList = React.forwardRef<MessageListHandle, Props>(
       contentContainerStyle={styles.messageList}
       ListEmptyComponent={
         <Text style={styles.emptyText}>Одоогоор зурвас алга.</Text>
+      }
+      ListFooterComponent={
+        isOtherTyping ? (
+          <View style={styles.typingFooter}>
+            <View style={styles.typingBubble}>
+              <Text style={styles.typingText}>Бичиж байна...</Text>
+            </View>
+          </View>
+        ) : null
       }
       onContentSizeChange={handleContentSizeChange}
       onLayout={handleLayout}

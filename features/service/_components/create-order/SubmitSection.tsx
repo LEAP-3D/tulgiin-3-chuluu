@@ -6,6 +6,7 @@ type Props = {
   hasWorker: boolean;
   submitError: string | null;
   onPress: () => void;
+  isSticky?: boolean;
 };
 
 export function SubmitSection({
@@ -13,13 +14,19 @@ export function SubmitSection({
   hasWorker,
   submitError,
   onPress,
+  isSticky = false,
 }: Props) {
   return (
     <>
-      {!!submitError && <Text style={baseStyles.errorText}>{submitError}</Text>}
+      {!!submitError && (
+        <Text style={isSticky ? baseStyles.errorTextBelow : baseStyles.errorText}>
+          {submitError}
+        </Text>
+      )}
       <Pressable
         style={[
           baseStyles.submitButton,
+          isSticky && baseStyles.submitButtonSticky,
           hasWorker && baseStyles.submitButtonSelected,
           isSubmitting && { opacity: 0.7 },
         ]}

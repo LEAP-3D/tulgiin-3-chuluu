@@ -59,6 +59,7 @@ export default function TabLayout() {
   }, [apiBaseUrl, isLoaded, user?.email]);
 
   const isWorker = profileRole === "worker";
+  const shouldShowGlobalHeader = !pathname.startsWith("/zurwas");
 
   useEffect(() => {
     if (!isWorker) return;
@@ -77,8 +78,7 @@ export default function TabLayout() {
 
   return (
     <View style={{ flex: 1 }}>
-      {/* ✅ Чиний header — 1 удаа, бүх tab дээр */}
-      <Header />
+      {shouldShowGlobalHeader ? <Header /> : null}
 
       <Tabs
         screenOptions={{

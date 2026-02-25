@@ -1,5 +1,6 @@
 import { Text, View } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSupabaseAuth } from "@/lib/supabase-auth";
 import { ChatView } from "@/features/zurwas/_components/ChatView";
 import { ConversationListView } from "@/features/zurwas/_components/ConversationListView";
@@ -13,6 +14,7 @@ import { useChatInput } from "@/features/zurwas/_components/useChatInput";
 
 export default function ZurwasScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { isLoaded, user } = useSupabaseAuth();
   const params = useLocalSearchParams();
   const orderId = getParam(params.orderId as string | string[] | undefined);
@@ -61,7 +63,8 @@ export default function ZurwasScreen() {
   if (!orderId) {
     return (
       <View style={styles.container}>
-        <View style={styles.headerRow}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <View style={[styles.headerRow, { paddingTop: insets.top + 12 }]}>
           <Text style={styles.title}>Зурвас</Text>
         </View>
         <ConversationListView
@@ -97,24 +100,27 @@ export default function ZurwasScreen() {
   const headerAvatarUrl = otherProfile?.avatarUrl ?? null;
 
   return (
-    <ChatView
-      headerTitle={headerTitle}
-      headerSubtitle={headerSubtitle}
-      headerMeta={headerMeta}
-      headerAvatarUrl={headerAvatarUrl}
-      orderIdToCopy={orderId ?? undefined}
-      messages={threadState.messages}
-      profileId={profileId}
-      isLoading={threadState.isLoading}
-      errorMessage={threadState.errorMessage}
-      isOtherTyping={isOtherTyping}
-      messageInput={messageInput}
-      isSending={isSending}
-      isChatReady={isChatReady}
-      onBack={() => router.replace("/(tabs)/zurwas")}
-      onInputChange={handleInputChange}
-      onInputBlur={() => sendTypingEvent(false)}
-      onSend={handleSend}
-    />
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <ChatView
+        headerTitle={headerTitle}
+        headerSubtitle={headerSubtitle}
+        headerMeta={headerMeta}
+        headerAvatarUrl={headerAvatarUrl}
+        orderIdToCopy={orderId ?? undefined}
+        messages={threadState.messages}
+        profileId={profileId}
+        isLoading={threadState.isLoading}
+        errorMessage={threadState.errorMessage}
+        isOtherTyping={isOtherTyping}
+        messageInput={messageInput}
+        isSending={isSending}
+        isChatReady={isChatReady}
+        onBack={() => router.replace("/(tabs)/zurwas")}
+        onInputChange={handleInputChange}
+        onInputBlur={() => sendTypingEvent(false)}
+        onSend={handleSend}
+      />
+    </>
   );
 }
