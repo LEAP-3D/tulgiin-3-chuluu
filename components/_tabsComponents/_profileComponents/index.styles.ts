@@ -5,7 +5,7 @@ export const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#F6F7FB" },
   container: {
     padding: 16,
-    paddingTop: 30,
+    paddingTop: 20,
     paddingBottom: 28,
     marginTop: 0,
     gap: 12,

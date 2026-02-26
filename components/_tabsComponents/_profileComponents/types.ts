@@ -26,6 +26,7 @@ export type ProfileScreenProps = {
   profile: ProfileData;
   isEditing: boolean;
   onChangeField: (field: ProfileField, value: string) => void;
+  onAvatarPress?: () => void;
   onEditPress?: () => void;
   onSavePress?: () => void;
   onLogoutPress?: () => void;

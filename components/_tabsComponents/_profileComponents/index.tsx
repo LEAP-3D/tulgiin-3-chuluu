@@ -10,6 +10,7 @@ export default function ProfileScreen({
   profile,
   isEditing,
   onChangeField,
+  onAvatarPress,
   onEditPress,
   onSavePress,
   onLogoutPress,
@@ -28,6 +29,7 @@ export default function ProfileScreen({
         <ProfileEditView
           profile={profile}
           onChangeField={onChangeField}
+          onAvatarPress={onAvatarPress}
           onEditPress={onEditPress}
           onSavePress={onSavePress}
           isSaving={isSaving}

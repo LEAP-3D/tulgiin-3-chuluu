@@ -47,6 +47,7 @@ export const buildProfilePayload = (profile: ProfileData) => {
     phone_number: profile.phone.trim(),
     first_name: profile.firstName.trim(),
     last_name: profile.lastName.trim(),
+    avatar_url: profile.avatarUrl ?? null,
     ...(role === "worker" ? { work_types: workTypes, service_area: serviceAreas } : {}),
   };
 };
@@ -58,6 +59,7 @@ export const mergeProfileFromApi = (profile: ProfileData, data: any): ProfileDat
   firstName: data.first_name ?? profile.firstName,
   email: data.email ?? profile.email,
   phone: data.phone_number ?? profile.phone,
+  avatarUrl: data.avatar_url ?? profile.avatarUrl,
   workTypes: normalizeWorkTypes(data.work_types ?? profile.workTypes),
   serviceAreas: normalizeList(data.service_area ?? profile.serviceAreas),
 });

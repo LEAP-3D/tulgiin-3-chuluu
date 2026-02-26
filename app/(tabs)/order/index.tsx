@@ -36,7 +36,7 @@ export default function OrderScreen() {
   const isWorkerView = ordersState.profileRole === "worker";
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={["left", "right", "bottom"]}>
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}

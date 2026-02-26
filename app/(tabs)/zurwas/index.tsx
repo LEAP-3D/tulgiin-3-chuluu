@@ -1,6 +1,5 @@
 import { Text, View } from "react-native";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSupabaseAuth } from "@/lib/supabase-auth";
 import { ChatView } from "@/features/zurwas/_components/ChatView";
 import { ConversationListView } from "@/features/zurwas/_components/ConversationListView";
@@ -14,7 +13,6 @@ import { useChatInput } from "@/features/zurwas/_components/useChatInput";
 
 export default function ZurwasScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { isLoaded, user } = useSupabaseAuth();
   const params = useLocalSearchParams();
   const orderId = getParam(params.orderId as string | string[] | undefined);
@@ -64,7 +62,7 @@ export default function ZurwasScreen() {
     return (
       <View style={styles.container}>
         <Stack.Screen options={{ headerShown: false }} />
-        <View style={[styles.headerRow, { paddingTop: insets.top + 12 }]}>
+        <View style={[styles.headerRow, { paddingTop: 20 }]}>
           <Text style={styles.title}>Зурвас</Text>
         </View>
         <ConversationListView

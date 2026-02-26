@@ -168,7 +168,7 @@ export default function ServiceScreen() {
 
       <Pressable
         style={[styles.fab, { bottom: 24 + insets.bottom }]}
-        onPress={() => console.log("fab")}
+        onPress={() => router.push("/modal")}
       >
         <SparklesIcon width={26} height={26} />
       </Pressable>

@@ -8,7 +8,7 @@ export const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingTop: 20,
     paddingBottom: 24,
   },
   listScreen: {
@@ -40,6 +40,11 @@ export const styles = StyleSheet.create({
   orderStatus: {
     fontSize: 12,
     color: "#8E8E8E",
+  },
+  orderNumber: {
+    fontSize: 12,
+    color: "#5F5F5F",
+    fontWeight: "600",
   },
   orderRow: {
     flexDirection: "row",

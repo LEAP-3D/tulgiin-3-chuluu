@@ -9,6 +9,7 @@ import { ServiceAreaChips } from "./ServiceAreaChips";
 type Props = {
   profile: ProfileData;
   onChangeField: (field: ProfileField, value: string) => void;
+  onAvatarPress?: () => void;
   onEditPress?: () => void;
   onSavePress?: () => void;
   isSaving?: boolean;
@@ -19,6 +20,7 @@ type Props = {
 export function ProfileEditView({
   profile,
   onChangeField,
+  onAvatarPress,
   onEditPress,
   onSavePress,
   isSaving,
@@ -36,7 +38,7 @@ export function ProfileEditView({
         <Text style={styles.backTitle}>Хувийн тохиргоо</Text>
       </Pressable>
 
-      <View style={styles.editAvatarWrap}>
+      <Pressable style={styles.editAvatarWrap} onPress={onAvatarPress} hitSlop={10}>
         <Image
           source={{
             uri:
@@ -48,7 +50,7 @@ export function ProfileEditView({
         <View style={styles.cameraBadge}>
           <Ionicons name="camera" size={14} color="#111" />
         </View>
-      </View>
+      </Pressable>
 
       <Text style={styles.inputLabel}>Овог</Text>
       <View
