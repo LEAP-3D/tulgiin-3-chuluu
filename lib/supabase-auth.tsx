@@ -29,12 +29,14 @@ export function SupabaseAuthProvider({
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
       setSession(data.session ?? null);
+      supabase.realtime.setAuth(data.session?.access_token ?? "");
       setIsLoaded(true);
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, nextSession) => {
         setSession(nextSession ?? null);
+        supabase.realtime.setAuth(nextSession?.access_token ?? "");
         setIsLoaded(true);
       },
     );

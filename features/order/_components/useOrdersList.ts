@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, AppState } from "react-native";
 import { useSupabaseAuth } from "@/lib/supabase-auth";
+import { supabase } from "@/lib/supabase";
 import type { OrderItem } from "./types";
 import { mapOrder } from "./helpers";
 
@@ -152,6 +153,52 @@ export function useOrdersList(apiBaseUrl: string): OrdersListState {
       subscription.remove();
     };
   }, [loadOrders]);
+
+  useEffect(() => {
+    if (!profileId || !profileRole) return;
+
+    const filterField =
+      profileRole === "worker" ? "worker_profile_id" : "user_profile_id";
+    const channel = supabase
+      .channel(`orders-${profileRole}-${profileId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "orders",
+          filter: `${filterField}=eq.${profileId}`,
+        },
+        (payload) => {
+          const row =
+            (payload as { new?: any; old?: any }).new ??
+            (payload as { old?: any }).old;
+          if (!row?.id) {
+            loadOrders({ silent: true });
+            return;
+          }
+
+          const mapped = mapOrder(row);
+          setOrders((prev) => {
+            const exists = prev.some((item) => item.id === mapped.id);
+            if (payload.eventType === "DELETE") {
+              return prev.filter((item) => item.id !== mapped.id);
+            }
+            if (exists) {
+              return prev.map((item) =>
+                item.id === mapped.id ? mapped : item,
+              );
+            }
+            return [mapped, ...prev];
+          });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profileId, profileRole, loadOrders]);
 
   useEffect(() => {
     if (!isUserLoaded) return;
