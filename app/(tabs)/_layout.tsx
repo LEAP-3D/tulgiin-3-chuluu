@@ -1,4 +1,4 @@
-import { Redirect, Tabs, usePathname, useRouter } from "expo-router";
+import { Redirect, Tabs, useGlobalSearchParams, usePathname, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -9,6 +9,7 @@ import { useSupabaseAuth } from "@/lib/supabase-auth";
 export default function TabLayout() {
   const router = useRouter();
   const pathname = usePathname();
+  const params = useGlobalSearchParams<{ orderId?: string | string[] }>();
   const { isLoaded, isSignedIn, user } = useSupabaseAuth();
   const [authReady, setAuthReady] = useState(false);
   const [profileRole, setProfileRole] = useState<"user" | "worker" | null>(null);
@@ -59,7 +60,12 @@ export default function TabLayout() {
   }, [apiBaseUrl, isLoaded, user?.email]);
 
   const isWorker = profileRole === "worker";
-  const shouldShowGlobalHeader = !pathname.startsWith("/zurwas");
+  const zurwasOrderId = Array.isArray(params.orderId)
+    ? params.orderId[0]
+    : params.orderId;
+  const isZurwasThread =
+    pathname.startsWith("/zurwas") && typeof zurwasOrderId === "string" && zurwasOrderId.length > 0;
+  const shouldShowGlobalHeader = !pathname.startsWith("/zurwas") || !isZurwasThread;
 
   useEffect(() => {
     if (!isWorker) return;

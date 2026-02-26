@@ -28,13 +28,16 @@ export function OrderProfileCard({
   const profileName = isWorkerView
     ? customer?.name ?? "Хэрэглэгч"
     : worker?.name ?? "Засварчин";
-  const phoneNumber = isWorkerView ? customer?.phone ?? "" : "";
+  const phoneNumber = isWorkerView ? customer?.phone ?? "" : worker?.phone ?? "";
   const canCall = phoneNumber.trim().length > 0;
   const serviceLabel = selectedOrder?.service_label
     ? `${selectedOrder.service_label} мэргэжилтэн`
     : selectedOrder?.service_key
       ? `${SERVICE_LABELS[selectedOrder.service_key] ?? selectedOrder.service_key} мэргэжилтэн`
       : "Мэргэжилтэн";
+  const orderCode = selectedOrder?.id
+    ? selectedOrder.id.slice(0, 8).toUpperCase()
+    : "—";
 
   return (
     <View style={orderDetailStyles.profileCard}>
@@ -67,9 +70,7 @@ export function OrderProfileCard({
         <View style={orderDetailStyles.profileStats}>
           <View style={orderDetailStyles.statRow}>
             <Text style={orderDetailStyles.statLabel}>Захиалга</Text>
-            <Text style={orderDetailStyles.statValue}>
-              {typeof worker?.orders === "number" ? worker.orders : "—"}
-            </Text>
+            <Text style={orderDetailStyles.statValue}>№ {orderCode}</Text>
           </View>
           <View style={orderDetailStyles.statRow}>
             <Text style={orderDetailStyles.statLabel}>Ажилласан жил</Text>

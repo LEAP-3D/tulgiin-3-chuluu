@@ -79,7 +79,7 @@ export const styles = StyleSheet.create({
   screenshotWrap: {
     position: "absolute",
     right: 8,
-    bottom: -14,
+    bottom: -34,
   },
   dots: {
     flexDirection: "row",

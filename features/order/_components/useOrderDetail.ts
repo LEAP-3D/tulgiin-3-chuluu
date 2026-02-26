@@ -61,6 +61,7 @@ export function useOrderDetail(
           name:
             `${data.first_name ?? ""} ${data.last_name ?? ""}`.trim() ||
             "Засварчин",
+          phone: data.phone_number ?? data.phone ?? null,
           rating: typeof data.rating === "number" ? data.rating : null,
           orders: typeof data.orders === "number" ? data.orders : null,
           years: typeof data.years === "number" ? data.years : null,

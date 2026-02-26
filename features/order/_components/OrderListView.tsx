@@ -119,6 +119,7 @@ export function OrderListView({
             isUpdating && updatingStatus === secondary?.status
               ? "Ачаалж байна..."
               : secondary?.label ?? "";
+          const orderCode = order.id.slice(0, 8).toUpperCase();
           return (
             <View key={order.id} style={styles.orderCard}>
               <Pressable
@@ -136,6 +137,7 @@ export function OrderListView({
                     </View>
                     <Text style={styles.orderTitle}>{label}</Text>
                   </View>
+                  <Text style={styles.orderNumber}>Захиалга № {orderCode}</Text>
                 </View>
                 <Text style={styles.chevron}>›</Text>
               </Pressable>

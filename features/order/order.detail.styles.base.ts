@@ -7,6 +7,10 @@ export const orderDetailBase = {
     alignItems: "center",
     gap: 10,
   },
+  detailHeaderTextWrap: {
+    flex: 1,
+    gap: 2,
+  },
   backButton: {
     width: 32,
     height: 32,
@@ -18,6 +22,11 @@ export const orderDetailBase = {
     fontSize: 16,
     fontWeight: "600",
     color: "#1F1F1F",
+  },
+  detailOrderCode: {
+    fontSize: 12,
+    color: "#6B6B6B",
+    fontWeight: "600",
   },
   sectionTitleSmall: {
     fontSize: 14,

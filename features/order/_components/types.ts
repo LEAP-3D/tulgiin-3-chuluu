@@ -24,6 +24,7 @@ export type OrderItem = {
 export type WorkerProfile = {
   id: string;
   name: string;
+  phone?: string | null;
   rating?: number | null;
   orders?: number | null;
   years?: number | null;

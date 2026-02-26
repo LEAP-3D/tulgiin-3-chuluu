@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Alert } from "react-native";
 import { useRouter } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
 import { useSignOut } from "@/components/sign-out-button";
 import type {
   ProfileData,
@@ -15,6 +16,7 @@ export type ProfileController = {
   isEditing: boolean;
   isSaving: boolean;
   onChangeField: (field: ProfileField, value: string) => void;
+  onAvatarPress: () => void;
   onEditPress: () => void;
   onSavePress: () => void;
   onLogoutPress: () => void;
@@ -39,6 +41,26 @@ export function useProfileController(): ProfileController {
 
   const onChangeField = (field: ProfileField, value: string) => {
     setProfile((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const onAvatarPress = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert("Зөвшөөрөл хэрэгтэй", "Зураг сонгохын тулд gallery эрх зөвшөөрнө үү.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (result.canceled) return;
+    const uri = result.assets?.[0]?.uri;
+    if (!uri) return;
+    setProfile((prev) => ({ ...prev, avatarUrl: uri }));
   };
 
   const validationErrors = useMemo(() => getProfileErrors(profile), [profile]);
@@ -66,22 +88,34 @@ export function useProfileController(): ProfileController {
     setIsSaving(true);
     try {
       const payload = buildProfilePayload(profile);
-      const response = await fetch(`${apiBaseUrl}/profiles`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const updateProfile = async (body: Record<string, unknown>) => {
+        const response = await fetch(`${apiBaseUrl}/profiles`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const parsed = await response.json().catch(() => null);
+        if (!response.ok) {
+          const message =
+            parsed?.error ?? parsed?.message ?? `HTTP ${response.status}`;
+          throw new Error(message);
+        }
+        return parsed;
+      };
 
-      if (!response.ok) {
-        const errorPayload = await response.json().catch(() => null);
-        const message =
-          errorPayload?.error ??
-          errorPayload?.message ??
-          `HTTP ${response.status}`;
-        throw new Error(message);
+      let result: any;
+      try {
+        result = await updateProfile(payload as Record<string, unknown>);
+      } catch (err) {
+        const message = (err instanceof Error ? err.message : "").toLowerCase();
+        const shouldRetryWithoutAvatar =
+          message.includes("avatar_url") || message.includes("validation failed");
+        if (!shouldRetryWithoutAvatar) throw err;
+        const { avatar_url: _avatarUrl, ...fallbackPayload } =
+          payload as Record<string, unknown>;
+        result = await updateProfile(fallbackPayload);
       }
 
-      const result = await response.json().catch(() => null);
       const data = result?.data;
       if (data) {
         setProfile((prev) => mergeProfileFromApi(prev, data));
@@ -166,6 +200,7 @@ export function useProfileController(): ProfileController {
     isEditing,
     isSaving: isSaving || isLoadingProfile || isSwitchingRole,
     onChangeField,
+    onAvatarPress,
     onEditPress,
     onSavePress,
     onLogoutPress,
