@@ -23,6 +23,21 @@ export const mapOrder = (item: any): OrderItem => ({
   scheduled_date: item.scheduled_date ?? null,
   urgency: item.urgency ?? null,
   attachment_urls: item.attachment_urls ?? null,
+  payment_amount: (() => {
+    if (typeof item.payment_amount === "number") return item.payment_amount;
+    if (typeof item.payment_amount === "string") {
+      const parsed = Number(item.payment_amount);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+  })(),
+  payment_method: item.payment_method ?? null,
+  payment_status: item.payment_status ?? null,
+  payment_provider: item.payment_provider ?? null,
+  payment_invoice_id: item.payment_invoice_id ?? null,
+  payment_followup_link: item.payment_followup_link ?? null,
+  payment_transaction_id: item.payment_transaction_id ?? null,
+  payment_paid_at: item.payment_paid_at ?? null,
 });
 
 export const buildTimeline = (order: OrderItem | null): TimelineItem[] => {

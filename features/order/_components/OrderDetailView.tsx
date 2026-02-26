@@ -34,6 +34,8 @@ type Props = {
   onInProgress: (orderId: string) => void;
   onComplete: (orderId: string) => void;
   onCancel: (orderId: string) => void;
+  onPay: (orderId: string) => void;
+  onConfirmCash: (orderId: string) => void;
 };
 
 export function OrderDetailView({
@@ -59,6 +61,8 @@ export function OrderDetailView({
   onInProgress,
   onComplete,
   onCancel,
+  onPay,
+  onConfirmCash,
 }: Props) {
   const actions = getWorkerActions(selectedOrder, profileRole, profileId);
   const primary = actions?.primary;
@@ -73,6 +77,37 @@ export function OrderDetailView({
     isUpdating && updatingStatus === secondary?.status
       ? "Ачаалж байна..."
       : secondary?.label ?? "";
+  const paymentAmount = selectedOrder?.payment_amount;
+  const paymentMethod = selectedOrder?.payment_method;
+  const paymentStatus = selectedOrder?.payment_status;
+  const paymentLink = selectedOrder?.payment_followup_link;
+  const showPaymentCard =
+    !!paymentAmount || !!paymentMethod || !!paymentStatus || !!paymentLink;
+  const showUserPayButton =
+    !isWorkerView &&
+    paymentMethod === "bank_app" &&
+    paymentStatus === "pending" &&
+    !!paymentLink;
+  const showWorkerCashConfirm =
+    isWorkerView && paymentMethod === "cash" && paymentStatus === "pending";
+  const paymentMethodLabel =
+    paymentMethod === "cash"
+      ? "Бэлэн"
+      : paymentMethod === "bank_app"
+        ? "Банкны апп"
+        : "—";
+  const paymentStatusLabel =
+    paymentStatus === "paid"
+      ? "Төлсөн"
+      : paymentStatus === "failed"
+        ? "Амжилтгүй"
+        : paymentStatus === "pending"
+          ? "Хүлээгдэж байна"
+          : "—";
+  const paymentAmountLabel =
+    typeof paymentAmount === "number"
+      ? `${paymentAmount.toLocaleString("en-US")} ₮`
+      : "—";
 
   const handleStatusChange = (status: string) => {
     if (!selectedOrder?.id) return;
@@ -177,6 +212,52 @@ export function OrderDetailView({
       {isWorkerView ? <OrderAttachmentsCard attachments={attachments} /> : null}
 
       <OrderStatusTimeline timeline={timeline} />
+
+      {showPaymentCard ? (
+        <View style={orderDetailStyles.profileCard}>
+          <Text style={orderDetailStyles.sectionTitleSmall}>Төлбөр</Text>
+          <View style={orderDetailStyles.profileStats}>
+            <View style={orderDetailStyles.statRow}>
+              <Text style={orderDetailStyles.statLabel}>Дүн</Text>
+              <Text style={orderDetailStyles.statValue}>{paymentAmountLabel}</Text>
+            </View>
+            <View style={orderDetailStyles.statRow}>
+              <Text style={orderDetailStyles.statLabel}>Төлбөрийн хэлбэр</Text>
+              <Text style={orderDetailStyles.statValue}>{paymentMethodLabel}</Text>
+            </View>
+            <View style={orderDetailStyles.statRow}>
+              <Text style={orderDetailStyles.statLabel}>Төлөв</Text>
+              <Text style={orderDetailStyles.statValue}>{paymentStatusLabel}</Text>
+            </View>
+          </View>
+          {showUserPayButton ? (
+            <View style={styles.orderActions}>
+              <Pressable
+                style={[styles.actionButton, styles.acceptButton]}
+                onPress={() => {
+                  if (!selectedOrder?.id) return;
+                  onPay(selectedOrder.id);
+                }}
+              >
+                <Text style={styles.actionText}>Төлбөр төлөх</Text>
+              </Pressable>
+            </View>
+          ) : null}
+          {showWorkerCashConfirm ? (
+            <View style={styles.orderActions}>
+              <Pressable
+                style={[styles.actionButton, styles.acceptButton]}
+                onPress={() => {
+                  if (!selectedOrder?.id) return;
+                  onConfirmCash(selectedOrder.id);
+                }}
+              >
+                <Text style={styles.actionText}>Бэлнээр төлснийг батлах</Text>
+              </Pressable>
+            </View>
+          ) : null}
+        </View>
+      ) : null}
     </View>
   );
 }

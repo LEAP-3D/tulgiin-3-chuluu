@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
-import { ScrollView } from "react-native";
+import { Alert, Linking, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { styles } from "@/features/order/order.styles";
 import { useOrdersList } from "@/features/order/_components/useOrdersList";
@@ -34,6 +34,21 @@ export default function OrderScreen() {
   }, [ordersState.orders, showDetail]);
 
   const isWorkerView = ordersState.profileRole === "worker";
+  const handleComplete = (orderId: string) => {
+    router.push({ pathname: "/payment", params: { orderId } });
+  };
+
+  const handlePay = (orderId: string) => {
+    const order = ordersState.orders.find((item) => item.id === orderId);
+    const link = order?.payment_followup_link;
+    if (!link) {
+      Alert.alert("Алдаа", "Төлбөрийн холбоос олдсонгүй.");
+      return;
+    }
+    Linking.openURL(link).catch(() => {
+      Alert.alert("Алдаа", "Төлбөрийн холбоос нээх үед алдаа гарлаа.");
+    });
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={["left", "right", "bottom"]}>
@@ -58,7 +73,7 @@ export default function OrderScreen() {
             onReject={ordersState.rejectOrder}
             onEnRoute={ordersState.setEnRoute}
             onInProgress={ordersState.setInProgress}
-            onComplete={ordersState.setCompleted}
+            onComplete={handleComplete}
             onCancel={ordersState.cancelOrder}
           />
         ) : (
@@ -93,8 +108,10 @@ export default function OrderScreen() {
             onReject={ordersState.rejectOrder}
             onEnRoute={ordersState.setEnRoute}
             onInProgress={ordersState.setInProgress}
-            onComplete={ordersState.setCompleted}
+            onComplete={handleComplete}
             onCancel={ordersState.cancelOrder}
+            onPay={handlePay}
+            onConfirmCash={ordersState.confirmCashPayment}
           />
         )}
       </ScrollView>
