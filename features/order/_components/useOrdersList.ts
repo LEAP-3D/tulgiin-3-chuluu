@@ -19,6 +19,7 @@ type OrdersListState = {
   setInProgress: (orderId: string) => Promise<void>;
   setCompleted: (orderId: string) => Promise<void>;
   cancelOrder: (orderId: string) => Promise<void>;
+  confirmCashPayment: (orderId: string) => Promise<void>;
 };
 
 type StatusTimestampField =
@@ -307,6 +308,45 @@ export function useOrdersList(apiBaseUrl: string): OrdersListState {
     }
   };
 
+  const confirmCashPayment = async (orderId: string) => {
+    setUpdatingOrderId(orderId);
+    setUpdatingStatus("payment");
+    const authHeader = session?.access_token
+      ? { Authorization: `Bearer ${session.access_token}` }
+      : {};
+    try {
+      const response = await fetch(
+        `${apiBaseUrl}/orders/${orderId}/payment/confirm-cash`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...authHeader },
+        },
+      );
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        const message =
+          payload?.error ?? payload?.message ?? `HTTP ${response.status}`;
+        throw new Error(message);
+      }
+      const updatedOrder = payload?.data ? mapOrder(payload.data) : null;
+      if (updatedOrder) {
+        setOrders((prev) =>
+          prev.map((item) => (item.id === orderId ? updatedOrder : item)),
+        );
+      }
+      Alert.alert("Амжилттай", "Төлбөр бэлнээр төлөгдсөн гэж тэмдэглэлээ.");
+    } catch (err) {
+      Alert.alert(
+        "Алдаа",
+        err instanceof Error ? err.message : "Төлбөр баталгаажуулах үед алдаа гарлаа.",
+      );
+      throw err;
+    } finally {
+      setUpdatingOrderId(null);
+      setUpdatingStatus(null);
+    }
+  };
+
   return {
     orders,
     isLoading,
@@ -321,5 +361,6 @@ export function useOrdersList(apiBaseUrl: string): OrdersListState {
     setInProgress,
     setCompleted,
     cancelOrder,
+    confirmCashPayment,
   };
 }

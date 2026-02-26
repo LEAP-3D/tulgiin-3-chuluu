@@ -19,6 +19,14 @@ export type OrderItem = {
   scheduled_date?: string | null;
   urgency?: string | null;
   attachment_urls?: unknown;
+  payment_amount?: number | null;
+  payment_method?: string | null;
+  payment_status?: string | null;
+  payment_provider?: string | null;
+  payment_invoice_id?: string | null;
+  payment_followup_link?: string | null;
+  payment_transaction_id?: string | null;
+  payment_paid_at?: string | null;
 };
 
 export type WorkerProfile = {
