@@ -81,8 +81,19 @@ export function OrderDetailView({
   const paymentMethod = selectedOrder?.payment_method;
   const paymentStatus = selectedOrder?.payment_status;
   const paymentLink = selectedOrder?.payment_followup_link;
+  const canCreatePayment =
+    isWorkerView &&
+    selectedOrder?.status === "completed" &&
+    !paymentAmount &&
+    !paymentMethod &&
+    !paymentStatus &&
+    !paymentLink;
   const showPaymentCard =
-    !!paymentAmount || !!paymentMethod || !!paymentStatus || !!paymentLink;
+    canCreatePayment ||
+    !!paymentAmount ||
+    !!paymentMethod ||
+    !!paymentStatus ||
+    !!paymentLink;
   const showUserPayButton =
     !isWorkerView &&
     paymentMethod === "bank_app" &&
@@ -216,20 +227,39 @@ export function OrderDetailView({
       {showPaymentCard ? (
         <View style={orderDetailStyles.profileCard}>
           <Text style={orderDetailStyles.sectionTitleSmall}>Төлбөр</Text>
-          <View style={orderDetailStyles.profileStats}>
-            <View style={orderDetailStyles.statRow}>
-              <Text style={orderDetailStyles.statLabel}>Дүн</Text>
-              <Text style={orderDetailStyles.statValue}>{paymentAmountLabel}</Text>
+          {!canCreatePayment ? (
+            <View style={orderDetailStyles.profileStats}>
+              <View style={orderDetailStyles.statRow}>
+                <Text style={orderDetailStyles.statLabel}>Дүн</Text>
+                <Text style={orderDetailStyles.statValue}>{paymentAmountLabel}</Text>
+              </View>
+              <View style={orderDetailStyles.statRow}>
+                <Text style={orderDetailStyles.statLabel}>Төлбөрийн хэлбэр</Text>
+                <Text style={orderDetailStyles.statValue}>{paymentMethodLabel}</Text>
+              </View>
+              <View style={orderDetailStyles.statRow}>
+                <Text style={orderDetailStyles.statLabel}>Төлөв</Text>
+                <Text style={orderDetailStyles.statValue}>{paymentStatusLabel}</Text>
+              </View>
             </View>
-            <View style={orderDetailStyles.statRow}>
-              <Text style={orderDetailStyles.statLabel}>Төлбөрийн хэлбэр</Text>
-              <Text style={orderDetailStyles.statValue}>{paymentMethodLabel}</Text>
+          ) : (
+            <Text style={orderDetailStyles.workerStatusText}>
+              Төлбөрийн мэдээлэл оруулаагүй байна.
+            </Text>
+          )}
+          {canCreatePayment ? (
+            <View style={styles.orderActions}>
+              <Pressable
+                style={[styles.actionButton, styles.acceptButton]}
+                onPress={() => {
+                  if (!selectedOrder?.id) return;
+                  onComplete(selectedOrder.id);
+                }}
+              >
+                <Text style={styles.actionText}>Төлбөр үүсгэх</Text>
+              </Pressable>
             </View>
-            <View style={orderDetailStyles.statRow}>
-              <Text style={orderDetailStyles.statLabel}>Төлөв</Text>
-              <Text style={orderDetailStyles.statValue}>{paymentStatusLabel}</Text>
-            </View>
-          </View>
+          ) : null}
           {showUserPayButton ? (
             <View style={styles.orderActions}>
               <Pressable
