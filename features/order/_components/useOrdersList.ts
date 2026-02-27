@@ -20,6 +20,7 @@ type OrdersListState = {
   setCompleted: (orderId: string) => Promise<void>;
   cancelOrder: (orderId: string) => Promise<void>;
   confirmCashPayment: (orderId: string) => Promise<void>;
+  retryLoadOrders?: () => void;
 };
 
 type StatusTimestampField =
@@ -36,7 +37,9 @@ export function useOrdersList(apiBaseUrl: string): OrdersListState {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
-  const [profileRole, setProfileRole] = useState<"user" | "worker" | null>(null);
+  const [profileRole, setProfileRole] = useState<"user" | "worker" | null>(
+    null,
+  );
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const isFetchingRef = useRef(false);
@@ -251,7 +254,9 @@ export function useOrdersList(apiBaseUrl: string): OrdersListState {
     } catch (err) {
       Alert.alert(
         "Алдаа",
-        err instanceof Error ? err.message : "Захиалга шинэчлэх үед алдаа гарлаа.",
+        err instanceof Error
+          ? err.message
+          : "Захиалга шинэчлэх үед алдаа гарлаа.",
       );
       throw err;
     } finally {
@@ -338,7 +343,9 @@ export function useOrdersList(apiBaseUrl: string): OrdersListState {
     } catch (err) {
       Alert.alert(
         "Алдаа",
-        err instanceof Error ? err.message : "Төлбөр баталгаажуулах үед алдаа гарлаа.",
+        err instanceof Error
+          ? err.message
+          : "Төлбөр баталгаажуулах үед алдаа гарлаа.",
       );
       throw err;
     } finally {
@@ -362,5 +369,6 @@ export function useOrdersList(apiBaseUrl: string): OrdersListState {
     setCompleted,
     cancelOrder,
     confirmCashPayment,
+    retryLoadOrders: () => loadOrders(),
   };
 }

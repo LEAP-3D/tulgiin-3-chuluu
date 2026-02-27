@@ -38,4 +38,5 @@ export type ProfileScreenProps = {
   isSaving?: boolean;
   errors?: ProfileErrors;
   showErrors?: boolean;
+  isLoadingProfile?: boolean;
 };

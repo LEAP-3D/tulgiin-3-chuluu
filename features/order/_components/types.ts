@@ -1,4 +1,5 @@
 export type OrderItem = {
+  longitude: any;
   id: string;
   service_key?: string | null;
   service_label?: string | null;

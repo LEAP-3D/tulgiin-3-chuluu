@@ -1,5 +1,6 @@
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { ProfileSkeleton } from "@/components/ScreenSkeletons";
 import type { RepairmanProfileController } from "./useRepairmanProfileController";
 import { styles } from "../../repairman-profile.styles";
 import { ProfileSummary } from "./ProfileSummary";
@@ -33,19 +34,23 @@ export function RepairmanProfileView({ controller }: Props) {
       >
         <View style={styles.headerRow}>
           <Pressable onPress={onBack} hitSlop={10} style={styles.backButton}>
-            <MaterialCommunityIcons name="arrow-left" size={22} color="#111111" />
+            <MaterialCommunityIcons
+              name="arrow-left"
+              size={22}
+              color="#111111"
+            />
           </Pressable>
           <Text style={styles.headerTitle}>Засварчны профайл</Text>
         </View>
 
         {isLoading ? (
-          <View style={styles.loadingCard}>
-            <ActivityIndicator size="small" color="#1F1F1F" />
-          </View>
+          <ProfileSkeleton />
         ) : errorMessage || !technician ? (
           <View style={styles.loadingCard}>
             <Text style={styles.errorTitle}>Алдаа гарлаа.</Text>
-            <Text style={styles.errorText}>{errorMessage ?? "Мэдээлэл олдсонгүй."}</Text>
+            <Text style={styles.errorText}>
+              {errorMessage ?? "Мэдээлэл олдсонгүй."}
+            </Text>
           </View>
         ) : (
           <>
