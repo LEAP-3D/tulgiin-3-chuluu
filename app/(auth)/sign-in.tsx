@@ -6,6 +6,33 @@ import { useSupabaseAuth } from "@/lib/supabase-auth";
 import { SignInCodeStep } from "@/features/auth/_components/sign-in-code-step";
 import { SignInEmailStep } from "@/features/auth/_components/sign-in-email-step";
 
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function toFriendlyAuthError(err: unknown, fallback: string): string {
+  const e = err as {
+    status?: number;
+    name?: string;
+    message?: string;
+    __isAuthError?: boolean;
+  };
+
+  const message = (e?.message ?? "").toLowerCase();
+  const isNetworkError =
+    e?.status === 0 ||
+    e?.name === "AuthRetryableFetchError" ||
+    message.includes("network request failed");
+
+  if (e?.status === 429) {
+    return "Хэт олон хүсэлт илгээгдсэн байна. Түр хүлээгээд дахин оролдоно уу.";
+  }
+  if (isNetworkError) {
+    return "Сүлжээний алдаа гарлаа. Интернэтээ шалгаад дахин оролдоно уу.";
+  }
+  return e?.message ?? fallback;
+}
+
 export default function Page() {
   const { isSignedIn, isLoaded } = useSupabaseAuth();
   const router = useRouter();
@@ -20,13 +47,25 @@ export default function Page() {
 
   const startEmailCodeSignIn = React.useCallback(async () => {
     if (!isLoaded) return;
-    const { error } = await supabase.auth.signInWithOtp({
-      email: emailAddress.trim(),
-    });
-    if (error) {
-      throw error;
+    // Retry once for transient network failures (status: 0).
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: emailAddress.trim(),
+      });
+      if (!error) {
+        setShowEmailCode(true);
+        return;
+      }
+      const errObj = error as { status?: number; name?: string; message?: string };
+      const networkLike =
+        errObj?.status === 0 ||
+        errObj?.name === "AuthRetryableFetchError" ||
+        (errObj?.message ?? "").toLowerCase().includes("network request failed");
+      if (!networkLike || attempt === 1) {
+        throw error;
+      }
+      await wait(500);
     }
-    setShowEmailCode(true);
   }, [emailAddress, isLoaded]);
 
   const onSignInPress = React.useCallback(async () => {
@@ -42,15 +81,8 @@ export default function Page() {
       setIsSubmitting(true);
       await startEmailCodeSignIn();
     } catch (err) {
-      const errObj = err as { status?: number; message?: string };
-      if (errObj?.status === 429) {
-        setErrorMessage(
-          "Хэт олон хүсэлт илгээгдсэн байна. Түр хүлээгээд дахин оролдоно уу.",
-        );
-        return;
-      }
-      console.error(JSON.stringify(err, null, 2));
-      setErrorMessage(errObj?.message ?? "Нэвтрэх үед алдаа гарлаа.");
+      console.error("signInWithOtp error:", err);
+      setErrorMessage(toFriendlyAuthError(err, "Нэвтрэх үед алдаа гарлаа."));
     } finally {
       setIsSubmitting(false);
     }
@@ -72,11 +104,8 @@ export default function Page() {
       setShowSuccess(true);
       setTimeout(() => router.replace("/(tabs)/service"), 900);
     } catch (err) {
-      console.error(JSON.stringify(err, null, 2));
-      setErrorMessage(
-        (err as { message?: string })?.message ??
-          "Баталгаажуулах үед алдаа гарлаа.",
-      );
+      console.error("verifyOtp error:", err);
+      setErrorMessage(toFriendlyAuthError(err, "Баталгаажуулах үед алдаа гарлаа."));
     }
   }, [emailAddress, code, isLoaded, router]);
 
