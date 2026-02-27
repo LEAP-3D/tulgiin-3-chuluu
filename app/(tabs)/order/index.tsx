@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
-import { Alert, Linking, ScrollView } from "react-native";
+import { Alert, Linking, ScrollView, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { styles } from "@/features/order/order.styles";
 import { useOrdersList } from "@/features/order/_components/useOrdersList";
@@ -8,6 +8,7 @@ import { useOrderDetail } from "@/features/order/_components/useOrderDetail";
 import { OrderListView } from "@/features/order/_components/OrderListView";
 import { OrderDetailView } from "@/features/order/_components/OrderDetailView";
 import type { OrderItem } from "@/features/order/_components/types";
+import { usePullToRefresh } from "@/lib/hooks/usePullToRefresh";
 
 export default function OrderScreen() {
   const router = useRouter();
@@ -24,11 +25,23 @@ export default function OrderScreen() {
     ordersState.profileRole,
   );
 
+  const handleRetry = () => {
+    ordersState.retryLoadOrders?.();
+  };
+
+  const refreshConfig = usePullToRefresh({
+    onRefresh: async () => {
+      ordersState.retryLoadOrders?.();
+    },
+  });
+
   useEffect(() => {
     if (!showDetail) return;
     setSelectedOrder((current) => {
       if (!current?.id) return current;
-      const updated = ordersState.orders.find((order) => order.id === current.id);
+      const updated = ordersState.orders.find(
+        (order) => order.id === current.id,
+      );
       return updated && updated !== current ? updated : current;
     });
   }, [ordersState.orders, showDetail]);
@@ -55,6 +68,17 @@ export default function OrderScreen() {
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          !showDetail ? (
+            <RefreshControl
+              refreshing={refreshConfig.refreshing}
+              onRefresh={refreshConfig.onRefresh}
+              tintColor={refreshConfig.tintColor}
+              title={refreshConfig.title}
+              titleColor={refreshConfig.titleColor}
+            />
+          ) : undefined
+        }
       >
         {!showDetail ? (
           <OrderListView
@@ -63,6 +87,7 @@ export default function OrderScreen() {
             errorMessage={ordersState.errorMessage}
             profileRole={ordersState.profileRole}
             profileId={ordersState.profileId}
+            isWorkerView={isWorkerView}
             updatingOrderId={ordersState.updatingOrderId}
             updatingStatus={ordersState.updatingStatus}
             onSelectOrder={(order) => {
@@ -75,6 +100,8 @@ export default function OrderScreen() {
             onInProgress={ordersState.setInProgress}
             onComplete={handleComplete}
             onCancel={ordersState.cancelOrder}
+            onPay={handlePay}
+            onRetry={handleRetry}
           />
         ) : (
           <OrderDetailView

@@ -1,7 +1,9 @@
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ScrollView } from "react-native";
 import { styles } from "./index.styles";
 import { ProfileEditView } from "./ProfileEditView";
 import { ProfileSummaryView } from "./ProfileSummaryView";
+import { ProfileSkeleton } from "@/components/ScreenSkeletons";
 import type { ProfileScreenProps } from "./types";
 
 export type { ProfileData, ProfileErrors, ProfileField } from "./types";
@@ -22,7 +24,18 @@ export default function ProfileScreen({
   isSaving,
   errors,
   showErrors,
+  isLoadingProfile,
 }: ProfileScreenProps) {
+  if (isLoadingProfile) {
+    return (
+      <SafeAreaView style={styles.safe} edges={["left", "right", "bottom"]}>
+        <ScrollView contentContainerStyle={styles.container}>
+          <ProfileSkeleton />
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={["left", "right", "bottom"]}>
       {isEditing ? (

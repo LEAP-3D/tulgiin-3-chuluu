@@ -8,13 +8,18 @@ import type {
   ProfileErrors,
   ProfileField,
 } from "@/components/_tabsComponents/_profileComponents";
-import { buildProfilePayload, getProfileErrors, mergeProfileFromApi } from "./profile-helpers";
+import {
+  buildProfilePayload,
+  getProfileErrors,
+  mergeProfileFromApi,
+} from "./profile-helpers";
 import { useProfileData } from "./useProfileData";
 
 export type ProfileController = {
   profile: ProfileData;
   isEditing: boolean;
   isSaving: boolean;
+  isLoadingProfile: boolean;
   onChangeField: (field: ProfileField, value: string) => void;
   onAvatarPress: () => void;
   onEditPress: () => void;
@@ -46,7 +51,10 @@ export function useProfileController(): ProfileController {
   const onAvatarPress = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert("Зөвшөөрөл хэрэгтэй", "Зураг сонгохын тулд gallery эрх зөвшөөрнө үү.");
+      Alert.alert(
+        "Зөвшөөрөл хэрэгтэй",
+        "Зураг сонгохын тулд gallery эрх зөвшөөрнө үү.",
+      );
       return;
     }
 
@@ -66,7 +74,8 @@ export function useProfileController(): ProfileController {
   const validationErrors = useMemo(() => getProfileErrors(profile), [profile]);
   const resolvedRole =
     profile.role ??
-    ((profile.workTypes?.length ?? 0) > 0 || (profile.serviceAreas?.length ?? 0) > 0
+    ((profile.workTypes?.length ?? 0) > 0 ||
+    (profile.serviceAreas?.length ?? 0) > 0
       ? "worker"
       : "user");
 
@@ -109,7 +118,8 @@ export function useProfileController(): ProfileController {
       } catch (err) {
         const message = (err instanceof Error ? err.message : "").toLowerCase();
         const shouldRetryWithoutAvatar =
-          message.includes("avatar_url") || message.includes("validation failed");
+          message.includes("avatar_url") ||
+          message.includes("validation failed");
         if (!shouldRetryWithoutAvatar) throw err;
         const { avatar_url: _avatarUrl, ...fallbackPayload } =
           payload as Record<string, unknown>;
@@ -164,7 +174,10 @@ export function useProfileController(): ProfileController {
           first_name: profile.firstName.trim(),
           last_name: profile.lastName.trim(),
           ...(nextRole === "worker"
-            ? { work_types: profile.workTypes ?? [], service_area: profile.serviceAreas ?? [] }
+            ? {
+                work_types: profile.workTypes ?? [],
+                service_area: profile.serviceAreas ?? [],
+              }
             : {}),
         }),
       });
@@ -199,6 +212,7 @@ export function useProfileController(): ProfileController {
     profile,
     isEditing,
     isSaving: isSaving || isLoadingProfile || isSwitchingRole,
+    isLoadingProfile,
     onChangeField,
     onAvatarPress,
     onEditPress,

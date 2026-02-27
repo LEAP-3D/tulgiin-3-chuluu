@@ -37,14 +37,29 @@ export const styles = StyleSheet.create({
   orderMeta: {
     gap: 8,
   },
-  orderStatus: {
-    fontSize: 12,
-    color: "#8E8E8E",
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignSelf: "flex-start",
   },
   orderNumber: {
     fontSize: 12,
     color: "#5F5F5F",
     fontWeight: "600",
+  },
+  paymentAmount: {
+    fontSize: 13,
+    color: "#1F1F1F",
+    fontWeight: "700",
+    marginTop: 4,
+  },
+  paymentStatus: {
+    fontSize: 12,
+    color: "#27AE60",
+    fontWeight: "600",
+    marginTop: 4,
   },
   orderRow: {
     flexDirection: "row",
