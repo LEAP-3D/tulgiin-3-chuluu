@@ -14,6 +14,7 @@ export type RepairmanProfileParams = {
 export type Technician = {
   id: string;
   name: string;
+  avatarUrl?: string | null;
   rating?: number | null;
   orders?: number | null;
   years?: number | null;

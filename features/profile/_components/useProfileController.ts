@@ -106,7 +106,11 @@ export function useProfileController(): ProfileController {
       const requestedAvatar =
         typeof payload.avatar_url === "string" ? payload.avatar_url.trim() : "";
       const savedAvatar =
-        typeof data?.avatar_url === "string" ? data.avatar_url.trim() : "";
+        typeof data?.profile_url === "string"
+          ? data.profile_url.trim()
+          : typeof data?.avatar_url === "string"
+            ? data.avatar_url.trim()
+            : "";
       if (requestedAvatar && requestedAvatar !== savedAvatar) {
         throw new Error(
           "avatar_url database дээр хадгалагдсангүй. Back-end schema/migration-аа шинэчилнэ үү.",
@@ -114,10 +118,16 @@ export function useProfileController(): ProfileController {
       }
       if (data) {
         setProfile((prev) => mergeProfileFromApi(prev, data));
-        if (typeof data.avatar_url === "string" && data.avatar_url.trim()) {
+        const serverAvatarUrl =
+          typeof data.profile_url === "string"
+            ? data.profile_url
+            : typeof data.avatar_url === "string"
+              ? data.avatar_url
+              : "";
+        if (serverAvatarUrl.trim()) {
           const email = profile.email?.trim();
           if (email) {
-            await setCachedProfileAvatar(email, data.avatar_url);
+            await setCachedProfileAvatar(email, serverAvatarUrl);
           }
         }
       }

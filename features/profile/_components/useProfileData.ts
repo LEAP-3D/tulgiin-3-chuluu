@@ -66,8 +66,14 @@ export function useProfileData(apiBaseUrl: string): ProfileDataState {
         if (!data || cancelled) return;
 
         setProfile((prev) => mergeProfileFromApi(prev, data));
-        if (typeof data.avatar_url === "string" && data.avatar_url.trim()) {
-          await setCachedProfileAvatar(email, data.avatar_url);
+        const serverAvatarUrl =
+          typeof data.profile_url === "string"
+            ? data.profile_url
+            : typeof data.avatar_url === "string"
+              ? data.avatar_url
+              : "";
+        if (serverAvatarUrl.trim()) {
+          await setCachedProfileAvatar(email, serverAvatarUrl);
         }
       } catch (err) {
         console.error("Load profile failed:", err);

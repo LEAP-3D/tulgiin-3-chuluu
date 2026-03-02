@@ -33,6 +33,7 @@ export type OrderItem = {
 export type WorkerProfile = {
   id: string;
   name: string;
+  avatarUrl?: string | null;
   phone?: string | null;
   rating?: number | null;
   orders?: number | null;
@@ -43,6 +44,7 @@ export type WorkerProfile = {
 export type CustomerProfile = {
   id: string;
   name: string;
+  avatarUrl?: string | null;
   email?: string | null;
   phone?: string | null;
 };

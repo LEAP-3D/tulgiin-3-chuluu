@@ -1,5 +1,6 @@
-import { Image, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { RemoteAvatar } from "@/components/RemoteAvatar";
 import { formatAreas } from "@/lib/utils/formatAreas";
 import type { Technician } from "./types";
 import { styles } from "../../repairman-profile.styles";
@@ -14,11 +15,9 @@ export function ProfileSummary({ technician, subtitle }: Props) {
     <>
       <View style={styles.profileRow}>
         <View style={styles.avatar}>
-          <Image
-            source={{
-              uri: "https://cdn-icons-png.flaticon.com/512/4140/4140048.png",
-            }}
-            style={styles.avatarImage}
+          <RemoteAvatar
+            uri={technician.avatarUrl}
+            imageStyle={styles.avatarImage}
           />
         </View>
         <View style={styles.profileInfo}>
