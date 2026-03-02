@@ -36,6 +36,7 @@ export type ProfileScreenProps = {
   onHelpPress?: () => void;
   onComplaintPress?: () => void;
   isSaving?: boolean;
+  isUploadingAvatar?: boolean;
   errors?: ProfileErrors;
   showErrors?: boolean;
   isLoadingProfile?: boolean;

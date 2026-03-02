@@ -36,6 +36,8 @@ export function useSelectRepairmanController(): SelectRepairmanController {
   const description =
     typeof params.description === "string" ? params.description : "";
   const urgency = typeof params.urgency === "string" ? params.urgency : "";
+  const attachments =
+    typeof params.attachments === "string" ? params.attachments : "[]";
 
   const districtQuery = useMemo(() => {
     if (!district) return "";
@@ -51,6 +53,7 @@ export function useSelectRepairmanController(): SelectRepairmanController {
     address,
     description,
     urgency,
+    attachments,
   };
 
   const [technicians, setTechnicians] = useState<Technician[]>([]);

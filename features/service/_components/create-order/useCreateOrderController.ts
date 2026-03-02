@@ -9,11 +9,16 @@ import {
   type CreateOrderFormState,
 } from "./useCreateOrderFormState";
 import {
+  useCreateOrderAttachments,
+  type CreateOrderAttachmentState,
+} from "./useCreateOrderAttachments";
+import {
   useCreateOrderSubmit,
   type SubmitState,
 } from "./useCreateOrderSubmit";
 
 export type CreateOrderController = CreateOrderFormState &
+  CreateOrderAttachmentState &
   SubmitState & {
     insetsBottom: number;
     selectedService: { key: string; label: string; icon: string };
@@ -30,6 +35,7 @@ export function useCreateOrderController(): CreateOrderController {
   const { selectedService, isServiceParamValid } = resolveService(params);
 
   const formState = useCreateOrderFormState(params);
+  const attachmentState = useCreateOrderAttachments(params);
   const submitState = useCreateOrderSubmit({
     apiBaseUrl,
     isUserLoaded,
@@ -46,6 +52,8 @@ export function useCreateOrderController(): CreateOrderController {
     minimumDate: formState.minimumDate,
     isServiceParamValid,
     selectedWorker: formState.selectedWorker,
+    attachmentUrls: attachmentState.attachmentUrls,
+    serializedAttachments: attachmentState.serializedAttachments,
     setErrors: formState.setErrors,
   });
 
@@ -58,6 +66,7 @@ export function useCreateOrderController(): CreateOrderController {
     isServiceParamValid,
     handleBack,
     ...formState,
+    ...attachmentState,
     ...submitState,
   };
 }

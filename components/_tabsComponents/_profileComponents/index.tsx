@@ -22,6 +22,7 @@ export default function ProfileScreen({
   onHelpPress,
   onComplaintPress,
   isSaving,
+  isUploadingAvatar,
   errors,
   showErrors,
   isLoadingProfile,
@@ -46,6 +47,7 @@ export default function ProfileScreen({
           onEditPress={onEditPress}
           onSavePress={onSavePress}
           isSaving={isSaving}
+          isUploadingAvatar={isUploadingAvatar}
           errors={errors}
           showErrors={showErrors}
         />

@@ -22,6 +22,10 @@ export function CreateOrderView({ controller }: { controller: CreateOrderControl
     khoroo,
     address,
     description,
+    attachmentUrls,
+    maxAttachments,
+    isUploadingAttachment,
+    attachmentError,
     urgency,
     errors,
     selectedWorker,
@@ -39,6 +43,8 @@ export function CreateOrderView({ controller }: { controller: CreateOrderControl
     handleSelectKhoroo,
     setAddress,
     setDescription,
+    pickAttachment,
+    removeAttachmentAt,
     setUrgency,
     setErrors,
     handlePrimaryAction,
@@ -96,6 +102,10 @@ export function CreateOrderView({ controller }: { controller: CreateOrderControl
         <DetailsSection
           address={address}
           description={description}
+          attachmentUrls={attachmentUrls}
+          maxAttachments={maxAttachments}
+          isUploadingAttachment={isUploadingAttachment}
+          attachmentError={attachmentError}
           onChangeAddress={(value) => {
             setAddress(value);
             if (errors.address) {
@@ -108,6 +118,8 @@ export function CreateOrderView({ controller }: { controller: CreateOrderControl
               setErrors((prev) => ({ ...prev, description: undefined }));
             }
           }}
+          onAddAttachment={pickAttachment}
+          onRemoveAttachment={removeAttachmentAt}
           addressError={errors.address}
           descriptionError={errors.description}
         />
