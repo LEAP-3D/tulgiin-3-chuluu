@@ -8,6 +8,7 @@ export type CreateOrderParams = {
   address?: string;
   description?: string;
   urgency?: string;
+  attachments?: string;
   selectedWorkerId?: string;
   selectedWorkerName?: string;
   selectedWorkerRating?: string;

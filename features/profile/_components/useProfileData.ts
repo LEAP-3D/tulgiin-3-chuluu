@@ -2,6 +2,7 @@ import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { useSupabaseAuth } from "@/lib/supabase-auth";
 import type { ProfileData } from "@/components/_tabsComponents/_profileComponents";
 import { mergeProfileFromApi } from "./profile-helpers";
+import { getCachedProfileAvatar, setCachedProfileAvatar } from "./profile-avatar-cache";
 
 export type ProfileDataState = {
   profile: ProfileData;
@@ -20,7 +21,7 @@ export function useProfileData(apiBaseUrl: string): ProfileDataState {
     role: "user",
     workTypes: [],
     serviceAreas: [],
-    avatarUrl: "https://cdn-icons-png.flaticon.com/512/4140/4140048.png",
+    avatarUrl: undefined,
     displayName: "",
   });
 
@@ -41,6 +42,11 @@ export function useProfileData(apiBaseUrl: string): ProfileDataState {
     const loadProfile = async () => {
       setIsLoadingProfile(true);
       try {
+        const cachedAvatar = await getCachedProfileAvatar(email);
+        if (cachedAvatar && !cancelled) {
+          setProfile((prev) => ({ ...prev, avatarUrl: prev.avatarUrl || cachedAvatar }));
+        }
+
         const response = await fetch(
           `${apiBaseUrl}/profiles?email=${encodeURIComponent(email)}`,
         );
@@ -60,6 +66,9 @@ export function useProfileData(apiBaseUrl: string): ProfileDataState {
         if (!data || cancelled) return;
 
         setProfile((prev) => mergeProfileFromApi(prev, data));
+        if (typeof data.avatar_url === "string" && data.avatar_url.trim()) {
+          await setCachedProfileAvatar(email, data.avatar_url);
+        }
       } catch (err) {
         console.error("Load profile failed:", err);
       } finally {

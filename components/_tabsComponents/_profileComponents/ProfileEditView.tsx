@@ -1,4 +1,4 @@
-import { Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { styles } from "./index.styles";
 import { FieldRow } from "./primitives";
@@ -13,6 +13,7 @@ type Props = {
   onEditPress?: () => void;
   onSavePress?: () => void;
   isSaving?: boolean;
+  isUploadingAvatar?: boolean;
   errors?: ProfileErrors;
   showErrors?: boolean;
 };
@@ -24,6 +25,7 @@ export function ProfileEditView({
   onEditPress,
   onSavePress,
   isSaving,
+  isUploadingAvatar,
   errors,
   showErrors,
 }: Props) {
@@ -48,7 +50,11 @@ export function ProfileEditView({
           style={styles.editAvatar}
         />
         <View style={styles.cameraBadge}>
-          <Ionicons name="camera" size={14} color="#111" />
+          {isUploadingAvatar ? (
+            <ActivityIndicator size="small" color="#111" />
+          ) : (
+            <Ionicons name="camera" size={14} color="#111" />
+          )}
         </View>
       </Pressable>
 
@@ -140,13 +146,17 @@ export function ProfileEditView({
         style={({ pressed }) => [
           styles.saveBtnDark,
           pressed && { opacity: 0.85 },
-          isSaving && { opacity: 0.6 },
+          (isSaving || isUploadingAvatar) && { opacity: 0.6 },
         ]}
         onPress={onSavePress}
-        disabled={isSaving}
+        disabled={isSaving || isUploadingAvatar}
       >
         <Text style={styles.saveTextDark}>
-          {isSaving ? "Хадгалж байна..." : "Хадгалах"}
+          {isSaving
+            ? "Хадгалж байна..."
+            : isUploadingAvatar
+              ? "Зураг оруулж байна..."
+              : "Хадгалах"}
         </Text>
       </Pressable>
     </ScrollView>

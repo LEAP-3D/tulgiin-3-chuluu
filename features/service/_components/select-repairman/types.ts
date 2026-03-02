@@ -7,6 +7,7 @@ export type SelectRepairmanParams = {
   address?: string;
   description?: string;
   urgency?: string;
+  attachments?: string;
 };
 
 export type Technician = {

@@ -19,6 +19,8 @@ type Params = {
   minimumDate: Date;
   isServiceParamValid: boolean;
   selectedWorker: SelectedWorker | null;
+  attachmentUrls: string[];
+  serializedAttachments: string;
   setErrors: Dispatch<SetStateAction<FormErrors>>;
 };
 
@@ -44,6 +46,8 @@ export function useCreateOrderSubmit({
   minimumDate,
   isServiceParamValid,
   selectedWorker,
+  attachmentUrls,
+  serializedAttachments,
   setErrors,
 }: Params): SubmitState {
   const router = useRouter();
@@ -56,9 +60,10 @@ export function useCreateOrderSubmit({
       throw new Error("Хэрэглэгчийн имэйл олдсонгүй.");
     }
 
-    const authHeader = accessToken
-      ? { Authorization: `Bearer ${accessToken}` }
-      : {};
+    const authHeader: Record<string, string> = {};
+    if (accessToken) {
+      authHeader.Authorization = `Bearer ${accessToken}`;
+    }
     const response = await fetch(
       `${apiBaseUrl}/profiles?email=${encodeURIComponent(email)}`,
       { headers: authHeader },
@@ -104,6 +109,7 @@ export function useCreateOrderSubmit({
           address: address.trim(),
           description: description.trim(),
           urgency: urgency ?? "normal",
+          attachment_urls: attachmentUrls,
           user_profile_id: userProfileId,
           worker_profile_id: selectedWorker.id,
         };
@@ -145,6 +151,7 @@ export function useCreateOrderSubmit({
         address,
         description,
         urgency: urgency ?? "",
+        attachments: serializedAttachments,
       },
     });
   };

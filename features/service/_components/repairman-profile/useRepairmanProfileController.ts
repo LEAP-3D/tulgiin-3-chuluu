@@ -48,6 +48,8 @@ export function useRepairmanProfileController(): RepairmanProfileController {
     description:
       typeof params.description === "string" ? params.description : "",
     urgency: typeof params.urgency === "string" ? params.urgency : "",
+    attachments:
+      typeof params.attachments === "string" ? params.attachments : "[]",
   };
 
   useEffect(() => {
