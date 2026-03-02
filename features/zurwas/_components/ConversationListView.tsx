@@ -1,4 +1,5 @@
 import { FlatList, Pressable, Text, View } from "react-native";
+import { RemoteAvatar } from "@/components/RemoteAvatar";
 import { MessageListSkeleton } from "@/components/ScreenSkeletons";
 import type { ConversationItem, MessageItem, ProfileInfo } from "./types";
 import { formatTime, getInitials, getProfessionLabel } from "./utils";
@@ -64,7 +65,14 @@ export function ConversationListView({
         onPress={() => onSelectConversation(item)}
       >
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{getInitials(displayName)}</Text>
+          {otherProfile?.avatarUrl ? (
+            <RemoteAvatar
+              uri={otherProfile.avatarUrl}
+              imageStyle={{ width: "100%", height: "100%" }}
+            />
+          ) : (
+            <Text style={styles.avatarText}>{getInitials(displayName)}</Text>
+          )}
         </View>
         <View style={styles.listContent}>
           <View style={styles.listRow}>

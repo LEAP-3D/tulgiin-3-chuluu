@@ -71,7 +71,7 @@ export function useConversationList({
         if (otherProfileIds.length > 0) {
           const { data: profileData, error: profileError } = await supabase
             .from("profiles")
-            .select("id, first_name, last_name, role, work_types")
+            .select("*")
             .in("id", otherProfileIds);
 
           if (profileError) throw profileError;
@@ -88,6 +88,12 @@ export function useConversationList({
               workTypes: Array.isArray(profile.work_types)
                 ? profile.work_types.filter(Boolean).map(String)
                 : [],
+              avatarUrl:
+                typeof profile.profile_url === "string"
+                  ? profile.profile_url
+                  : typeof profile.avatar_url === "string"
+                    ? profile.avatar_url
+                    : null,
             };
           });
           if (!cancelled) {

@@ -1,5 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Image, Text, View } from "react-native";
+import { Text, View } from "react-native";
+import { RemoteAvatar } from "@/components/RemoteAvatar";
 import { formatAreas } from "@/lib/utils/formatAreas";
 import type { SelectedWorker } from "./types";
 import { workerStyles } from "./styles/worker";
@@ -17,13 +18,9 @@ export function WorkerCard({ worker, serviceLabel }: Props) {
       <View style={workerStyles.workerCard}>
         <View style={workerStyles.workerTopRow}>
           <View style={workerStyles.workerAvatar}>
-            <Image
-              source={{
-                uri:
-                  worker.avatarUrl ??
-                  "https://cdn-icons-png.flaticon.com/512/4140/4140048.png",
-              }}
-              style={workerStyles.workerAvatarImage}
+            <RemoteAvatar
+              uri={worker.avatarUrl}
+              imageStyle={workerStyles.workerAvatarImage}
             />
           </View>
           <View style={workerStyles.workerTitleBlock}>

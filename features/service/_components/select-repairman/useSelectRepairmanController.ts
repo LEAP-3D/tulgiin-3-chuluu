@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SERVICE_LABELS } from "@/constants/services";
@@ -60,6 +60,21 @@ export function useSelectRepairmanController(): SelectRepairmanController {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const readAvatarFromProfile = useCallback(async (profileId: string) => {
+    const response = await fetch(`${apiBaseUrl}/profiles/${profileId}`);
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) return null;
+    const data = payload?.data;
+    if (!data || typeof data !== "object") return null;
+    if (typeof data.profile_url === "string" && data.profile_url.trim()) {
+      return data.profile_url;
+    }
+    if (typeof data.avatar_url === "string" && data.avatar_url.trim()) {
+      return data.avatar_url;
+    }
+    return null;
+  }, [apiBaseUrl]);
+
   const onOpenProfile = (id: string) => {
     router.push({
       pathname: "/service/repairman-profile",
@@ -114,9 +129,38 @@ export function useSelectRepairmanController(): SelectRepairmanController {
           orders: typeof item.orders === "number" ? item.orders : null,
           years: typeof item.years === "number" ? item.years : null,
           avatarUrl:
-            typeof item.avatar_url === "string" ? item.avatar_url : null,
+            typeof item.profile_url === "string"
+              ? item.profile_url
+              : typeof item.avatar_url === "string"
+                ? item.avatar_url
+                : null,
         }));
-        if (!cancelled) setTechnicians(mapped);
+        const missingAvatarIds = mapped
+          .filter((item) => !item.avatarUrl && item.id)
+          .map((item) => item.id);
+
+        if (missingAvatarIds.length === 0) {
+          if (!cancelled) setTechnicians(mapped);
+          return;
+        }
+
+        const fallbackEntries = await Promise.all(
+          missingAvatarIds.map(async (id) => ({
+            id,
+            avatarUrl: await readAvatarFromProfile(id),
+          })),
+        );
+        const fallbackMap = new Map(
+          fallbackEntries
+            .filter((item) => typeof item.avatarUrl === "string" && item.avatarUrl)
+            .map((item) => [item.id, item.avatarUrl as string]),
+        );
+
+        const enriched = mapped.map((item) => ({
+          ...item,
+          avatarUrl: item.avatarUrl ?? fallbackMap.get(item.id) ?? null,
+        }));
+        if (!cancelled) setTechnicians(enriched);
       } catch (err) {
         if (!cancelled) {
           setErrorMessage(
@@ -134,7 +178,7 @@ export function useSelectRepairmanController(): SelectRepairmanController {
     return () => {
       cancelled = true;
     };
-  }, [apiBaseUrl, districtQuery, typeKey]);
+  }, [apiBaseUrl, districtQuery, readAvatarFromProfile, typeKey]);
 
   return {
     insetsBottom: insets.bottom,

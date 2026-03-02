@@ -49,6 +49,7 @@ export const zurwasBaseStyles = {
     backgroundColor: "#FF8A1E",
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
   },
   avatarText: {
     fontSize: 14,
@@ -105,6 +106,7 @@ export const zurwasBaseStyles = {
     alignItems: "center",
     justifyContent: "center",
     marginRight: 10,
+    overflow: "hidden",
   },
   headerAvatarImage: {
     width: 36,

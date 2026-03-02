@@ -59,7 +59,7 @@ export const mergeProfileFromApi = (profile: ProfileData, data: any): ProfileDat
   firstName: data.first_name ?? profile.firstName,
   email: data.email ?? profile.email,
   phone: data.phone_number ?? profile.phone,
-  avatarUrl: data.avatar_url ?? profile.avatarUrl,
+  avatarUrl: data.profile_url ?? data.avatar_url ?? profile.avatarUrl,
   workTypes: normalizeWorkTypes(data.work_types ?? profile.workTypes),
   serviceAreas: normalizeList(data.service_area ?? profile.serviceAreas),
 });

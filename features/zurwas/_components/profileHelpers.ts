@@ -7,6 +7,7 @@ const toProfileInfo = (profile: {
   last_name?: string | null;
   role?: string | null;
   work_types?: unknown;
+  profile_url?: string | null;
   avatar_url?: string | null;
 }): ProfileInfo => {
   const firstName = profile.first_name ?? "";
@@ -19,32 +20,21 @@ const toProfileInfo = (profile: {
     workTypes: Array.isArray(profile.work_types)
       ? profile.work_types.filter(Boolean).map(String)
       : [],
-    avatarUrl: typeof profile.avatar_url === "string" ? profile.avatar_url : null,
+    avatarUrl:
+      typeof profile.profile_url === "string"
+        ? profile.profile_url
+        : typeof profile.avatar_url === "string"
+          ? profile.avatar_url
+          : null,
   };
 };
 
 export const fetchProfileInfo = async (profileId: string) => {
-  const withAvatar = "id, first_name, last_name, role, work_types, avatar_url";
-  const withoutAvatar = "id, first_name, last_name, role, work_types";
-
   const { data, error } = await supabase
     .from("profiles")
-    .select(withAvatar)
+    .select("*")
     .eq("id", profileId)
     .maybeSingle();
-
-  if (error?.message?.includes("avatar_url")) {
-    const { data: fallback, error: fallbackError } = await supabase
-      .from("profiles")
-      .select(withoutAvatar)
-      .eq("id", profileId)
-      .maybeSingle();
-
-    if (fallbackError) {
-      throw new Error(fallbackError.message);
-    }
-    return fallback ? toProfileInfo(fallback) : null;
-  }
 
   if (error) {
     throw new Error(error.message);

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { normalizeList } from "@/lib/utils/normalize";
 import { buildTimeline } from "./helpers";
 import type { CustomerProfile, OrderItem, TimelineItem, WorkerProfile } from "./types";
@@ -32,6 +32,20 @@ export function useOrderDetail(
     if (!selectedOrder) return [];
     return normalizeList(selectedOrder.attachment_urls);
   }, [selectedOrder]);
+  const readAvatarFromProfile = useCallback(async (profileId: string) => {
+    const response = await fetch(`${apiBaseUrl}/profiles/${profileId}`);
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) return null;
+    const data = payload?.data;
+    if (!data || typeof data !== "object") return null;
+    if (typeof data.profile_url === "string" && data.profile_url.trim()) {
+      return data.profile_url;
+    }
+    if (typeof data.avatar_url === "string" && data.avatar_url.trim()) {
+      return data.avatar_url;
+    }
+    return null;
+  }, [apiBaseUrl]);
 
   useEffect(() => {
     const workerId = selectedOrder?.worker_profile_id;
@@ -61,12 +75,21 @@ export function useOrderDetail(
           name:
             `${data.first_name ?? ""} ${data.last_name ?? ""}`.trim() ||
             "Засварчин",
+          avatarUrl:
+            typeof data.profile_url === "string"
+              ? data.profile_url
+              : typeof data.avatar_url === "string"
+                ? data.avatar_url
+                : null,
           phone: data.phone_number ?? data.phone ?? null,
           rating: typeof data.rating === "number" ? data.rating : null,
           orders: typeof data.orders === "number" ? data.orders : null,
           years: typeof data.years === "number" ? data.years : null,
           areas: normalizeList(data.service_area),
         };
+        if (!mapped.avatarUrl && mapped.id) {
+          mapped.avatarUrl = await readAvatarFromProfile(mapped.id);
+        }
         if (!cancelled) setWorker(mapped);
       } catch (err) {
         if (!cancelled) {
@@ -86,7 +109,7 @@ export function useOrderDetail(
     return () => {
       cancelled = true;
     };
-  }, [apiBaseUrl, selectedOrder?.worker_profile_id, showDetail]);
+  }, [apiBaseUrl, readAvatarFromProfile, selectedOrder?.worker_profile_id, showDetail]);
 
   useEffect(() => {
     if (!showDetail) return;
@@ -117,9 +140,18 @@ export function useOrderDetail(
           name:
             `${data.first_name ?? ""} ${data.last_name ?? ""}`.trim() ||
             "Хэрэглэгч",
+          avatarUrl:
+            typeof data.profile_url === "string"
+              ? data.profile_url
+              : typeof data.avatar_url === "string"
+                ? data.avatar_url
+                : null,
           email: data.email ?? null,
           phone: data.phone_number ?? null,
         };
+        if (!mapped.avatarUrl && mapped.id) {
+          mapped.avatarUrl = await readAvatarFromProfile(mapped.id);
+        }
         if (!cancelled) setCustomer(mapped);
       } catch (err) {
         if (!cancelled) {
@@ -139,7 +171,7 @@ export function useOrderDetail(
     return () => {
       cancelled = true;
     };
-  }, [apiBaseUrl, profileRole, selectedOrder?.user_profile_id, showDetail]);
+  }, [apiBaseUrl, profileRole, readAvatarFromProfile, selectedOrder?.user_profile_id, showDetail]);
 
   return {
     worker,

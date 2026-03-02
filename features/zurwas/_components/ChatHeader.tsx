@@ -1,7 +1,8 @@
 import * as React from "react";
-import { Image, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import LeftArrowIcon from "@/components/icons/_serviceIcons/leftarrowIcon";
+import { RemoteAvatar } from "@/components/RemoteAvatar";
 import { styles } from "./styles";
 
 type Props = {
@@ -28,13 +29,12 @@ export function ChatHeader({
       <Pressable style={styles.backButton} onPress={onBack}>
         <LeftArrowIcon width={22} height={22} color="#1F1F1F" />
       </Pressable>
-      {avatarUrl ? (
-        <Image source={{ uri: avatarUrl }} style={styles.headerAvatarImage} />
-      ) : (
-        <View style={styles.headerAvatar}>
-          <Ionicons name="person" size={18} color="#FFFFFF" />
-        </View>
-      )}
+      <RemoteAvatar
+        uri={avatarUrl}
+        containerStyle={styles.headerAvatar}
+        iconName="person"
+        iconColor="#FFFFFF"
+      />
       <View style={styles.headerContent}>
         <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
           {title}

@@ -1,5 +1,6 @@
-import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { RemoteAvatar } from "@/components/RemoteAvatar";
 import { styles } from "./index.styles";
 import { FieldRow } from "./primitives";
 import type { ProfileData, ProfileErrors, ProfileField } from "./types";
@@ -41,14 +42,7 @@ export function ProfileEditView({
       </Pressable>
 
       <Pressable style={styles.editAvatarWrap} onPress={onAvatarPress} hitSlop={10}>
-        <Image
-          source={{
-            uri:
-              profile.avatarUrl ??
-              "https://cdn-icons-png.flaticon.com/512/4140/4140048.png",
-          }}
-          style={styles.editAvatar}
-        />
+        <RemoteAvatar uri={profile.avatarUrl} imageStyle={styles.editAvatar} />
         <View style={styles.cameraBadge}>
           {isUploadingAvatar ? (
             <ActivityIndicator size="small" color="#111" />

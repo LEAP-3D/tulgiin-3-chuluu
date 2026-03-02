@@ -1,5 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Image, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
+import { RemoteAvatar } from "@/components/RemoteAvatar";
 import { formatAreas } from "@/lib/utils/formatAreas";
 import { styles } from "../../select-repairman.styles";
 import type { Technician } from "./types";
@@ -24,14 +25,7 @@ export function TechnicianCard({
     >
       <View style={styles.cardTopRow}>
         <View style={styles.avatar}>
-          <Image
-            source={{
-              uri:
-                tech.avatarUrl ??
-                "https://cdn-icons-png.flaticon.com/512/4140/4140048.png",
-            }}
-            style={styles.avatarImage}
-          />
+          <RemoteAvatar uri={tech.avatarUrl} imageStyle={styles.avatarImage} />
         </View>
         <View style={styles.cardTitleBlock}>
           <Text style={styles.name}>{tech.name}</Text>

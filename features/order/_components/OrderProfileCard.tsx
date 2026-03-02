@@ -1,5 +1,6 @@
-import { Alert, Image, Linking, Pressable, Text, View } from "react-native";
+import { Alert, Linking, Pressable, Text, View } from "react-native";
 import CallIcon from "@/components/icons/call";
+import { RemoteAvatar } from "@/components/RemoteAvatar";
 import { SERVICE_LABELS } from "@/constants/services";
 import { formatAreas } from "@/lib/utils/formatAreas";
 import { orderDetailStyles } from "../order.detail.styles";
@@ -28,6 +29,7 @@ export function OrderProfileCard({
   const profileName = isWorkerView
     ? customer?.name ?? "Хэрэглэгч"
     : worker?.name ?? "Засварчин";
+  const avatarUrl = isWorkerView ? customer?.avatarUrl : worker?.avatarUrl;
   const phoneNumber = isWorkerView ? customer?.phone ?? "" : worker?.phone ?? "";
   const canCall = phoneNumber.trim().length > 0;
   const serviceLabel = selectedOrder?.service_label
@@ -43,11 +45,9 @@ export function OrderProfileCard({
     <View style={orderDetailStyles.profileCard}>
       <View style={orderDetailStyles.profileTop}>
         <View style={orderDetailStyles.avatar}>
-          <Image
-            source={{
-              uri: "https://cdn-icons-png.flaticon.com/512/4140/4140048.png",
-            }}
-            style={orderDetailStyles.avatarImage}
+          <RemoteAvatar
+            uri={avatarUrl}
+            imageStyle={orderDetailStyles.avatarImage}
           />
         </View>
         <View style={orderDetailStyles.profileInfo}>

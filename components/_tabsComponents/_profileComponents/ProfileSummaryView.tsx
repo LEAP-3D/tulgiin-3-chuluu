@@ -1,5 +1,6 @@
-import { Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { RemoteAvatar } from "@/components/RemoteAvatar";
 import { styles } from "./index.styles";
 import { Divider, MenuRow } from "./primitives";
 import type { ProfileData } from "./types";
@@ -35,11 +36,7 @@ export function ProfileSummaryView({
       <Pressable style={styles.profileCard} onPress={onEditPress}>
         <View style={styles.profileRow}>
           <View style={styles.avatarMini}>
-            {profile.avatarUrl ? (
-              <Image source={{ uri: profile.avatarUrl }} style={styles.avatarImage} />
-            ) : (
-              <Ionicons name="person" size={18} color="#8B8B8B" />
-            )}
+            <RemoteAvatar uri={profile.avatarUrl} imageStyle={styles.avatarImage} />
           </View>
           <Text style={styles.profileName}>
             {profile.firstName?.trim() ||

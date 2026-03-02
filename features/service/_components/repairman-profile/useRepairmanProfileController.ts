@@ -75,6 +75,12 @@ export function useRepairmanProfileController(): RepairmanProfileController {
           name:
             `${data.first_name ?? ""} ${data.last_name ?? ""}`.trim() ||
             "Засварчин",
+          avatarUrl:
+            typeof data.profile_url === "string"
+              ? data.profile_url
+              : typeof data.avatar_url === "string"
+                ? data.avatar_url
+                : null,
           rating: typeof data.rating === "number" ? data.rating : null,
           orders: typeof data.orders === "number" ? data.orders : null,
           years: typeof data.years === "number" ? data.years : null,
@@ -116,6 +122,7 @@ export function useRepairmanProfileController(): RepairmanProfileController {
         selectedWorkerYears:
           typeof technician.years === "number" ? String(technician.years) : "",
         selectedWorkerAreas: JSON.stringify(technician.areas),
+        selectedWorkerAvatar: technician.avatarUrl ?? "",
       },
     });
   };
