@@ -361,17 +361,80 @@ export function useOrdersList(apiBaseUrl: string): OrdersListState {
     const authHeader = session?.access_token
       ? { Authorization: `Bearer ${session.access_token}` }
       : {};
+    const trimmedComment = comment.trim();
+
+    const submitReviewViaSupabase = async () => {
+      const { data: existingOrder, error: existingOrderError } = await supabase
+        .from("orders")
+        .select(
+          "id, status, payment_status, user_profile_id, review_rating, review_comment, reviewed_at",
+        )
+        .eq("id", orderId)
+        .single();
+
+      if (existingOrderError) {
+        throw new Error(existingOrderError.message);
+      }
+
+      if (existingOrder?.user_profile_id && user?.id && existingOrder.user_profile_id !== user.id) {
+        throw new Error("Хэрэглэгч зөвхөн өөрийн захиалгад үнэлгээ өгнө.");
+      }
+      if (existingOrder?.status !== "completed") {
+        throw new Error("Захиалга дуусаагүй байна.");
+      }
+      if (existingOrder?.payment_status !== "paid") {
+        throw new Error("Төлбөр баталгаажаагүй байна.");
+      }
+      const hasExistingReview =
+        (existingOrder?.review_rating !== null &&
+          existingOrder?.review_rating !== undefined) ||
+        (typeof existingOrder?.review_comment === "string" &&
+          existingOrder.review_comment.trim().length > 0) ||
+        !!existingOrder?.reviewed_at;
+      if (hasExistingReview) {
+        throw new Error("Үнэлгээ аль хэдийн илгээгдсэн байна.");
+      }
+
+      const now = new Date().toISOString();
+      const { data, error } = await supabase
+        .from("orders")
+        .update({
+          review_rating: rating,
+          review_comment: trimmedComment,
+          reviewed_at: now,
+          updated_at: now,
+        })
+        .eq("id", orderId)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+      return data;
+    };
     try {
       const response = await fetch(`${apiBaseUrl}/orders/${orderId}/review`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeader },
         body: JSON.stringify({
           rating,
-          comment,
+          comment: trimmedComment,
         }),
       });
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
+        if (response.status === 404) {
+          const fallbackData = await submitReviewViaSupabase();
+          const updatedOrder = fallbackData ? mapOrder(fallbackData) : null;
+          if (updatedOrder) {
+            setOrders((prev) =>
+              prev.map((item) => (item.id === orderId ? updatedOrder : item)),
+            );
+          }
+          Alert.alert("Амжилттай", "Үнэлгээ болон сэтгэгдэл хадгалагдлаа.");
+          return;
+        }
         const message =
           payload?.error ?? payload?.message ?? `HTTP ${response.status}`;
         throw new Error(message);

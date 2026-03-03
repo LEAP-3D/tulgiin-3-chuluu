@@ -17,6 +17,7 @@ export type Technician = {
   avatarUrl?: string | null;
   rating?: number | null;
   orders?: number | null;
+  reviewCount?: number | null;
   years?: number | null;
   areas: string[];
   skills: string[];
@@ -27,5 +28,5 @@ export type Review = {
   author: string;
   rating: number;
   text: string;
-  date: string;
+  date?: string | null;
 };

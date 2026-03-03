@@ -59,6 +59,14 @@ export function useSelectRepairmanController(): SelectRepairmanController {
   const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const parseNumber = (value: unknown) => {
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string" && value.trim()) {
+      const parsed = Number(value);
+      if (Number.isFinite(parsed)) return parsed;
+    }
+    return null;
+  };
 
   const readAvatarFromProfile = useCallback(async (profileId: string) => {
     const response = await fetch(`${apiBaseUrl}/profiles/${profileId}`);
@@ -125,9 +133,9 @@ export function useSelectRepairmanController(): SelectRepairmanController {
             "Засварчин",
           areas: normalizeList(item.service_area),
           services: normalizeList(item.work_types),
-          rating: typeof item.rating === "number" ? item.rating : null,
-          orders: typeof item.orders === "number" ? item.orders : null,
-          years: typeof item.years === "number" ? item.years : null,
+          rating: parseNumber(item.rating),
+          orders: parseNumber(item.orders),
+          years: parseNumber(item.years),
           avatarUrl:
             typeof item.profile_url === "string"
               ? item.profile_url

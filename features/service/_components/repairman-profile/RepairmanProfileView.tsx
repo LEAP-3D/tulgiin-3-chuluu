@@ -15,6 +15,7 @@ export function RepairmanProfileView({ controller }: Props) {
   const {
     insetsBottom,
     technician,
+    reviews,
     subtitle,
     isLoading,
     errorMessage,
@@ -56,7 +57,7 @@ export function RepairmanProfileView({ controller }: Props) {
           <>
             <ProfileSummary technician={technician} subtitle={subtitle} />
             <SkillsSection skills={technician.skills} />
-            <ReviewsSection />
+            <ReviewsSection reviews={reviews} />
             <Pressable style={styles.selectButton} onPress={onSelectWorker}>
               <Text style={styles.selectText}>Сонгох</Text>
             </Pressable>

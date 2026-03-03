@@ -3,11 +3,12 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SERVICE_LABELS } from "@/constants/services";
 import { normalizeList } from "@/lib/utils/normalize";
-import type { RepairmanProfileParams, Technician } from "./types";
+import type { RepairmanProfileParams, Review, Technician } from "./types";
 
 export type RepairmanProfileController = {
   insetsBottom: number;
   technician: Technician | null;
+  reviews: Review[];
   subtitle: string;
   isLoading: boolean;
   errorMessage: string | null;
@@ -26,8 +27,18 @@ export function useRepairmanProfileController(): RepairmanProfileController {
     typeof params.typeLabel === "string" ? params.typeLabel : "";
 
   const [technician, setTechnician] = useState<Technician | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const parseNumber = (value: unknown) => {
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string" && value.trim()) {
+      const parsed = Number(value);
+      if (Number.isFinite(parsed)) return parsed;
+    }
+    return null;
+  };
 
   const subtitle = useMemo(() => {
     if (fallbackTypeLabel) return `${fallbackTypeLabel} мэргэжилтэн`;
@@ -81,15 +92,47 @@ export function useRepairmanProfileController(): RepairmanProfileController {
               : typeof data.avatar_url === "string"
                 ? data.avatar_url
                 : null,
-          rating: typeof data.rating === "number" ? data.rating : null,
-          orders: typeof data.orders === "number" ? data.orders : null,
-          years: typeof data.years === "number" ? data.years : null,
+          rating: parseNumber(data.rating),
+          orders: parseNumber(data.orders),
+          reviewCount: parseNumber(data.review_count),
+          years: parseNumber(data.years),
           areas: normalizeList(data.service_area),
           skills: normalizeList(data.work_types),
         };
-        if (!cancelled) setTechnician(mapped);
+        const mappedReviews: Review[] = Array.isArray(data.reviews)
+          ? data.reviews
+              .map((item: any) => {
+                const rating = parseNumber(item?.rating);
+                if (!rating) return null;
+                return {
+                  id: String(item?.id ?? ""),
+                  author:
+                    typeof item?.author === "string" && item.author.trim()
+                      ? item.author.trim()
+                      : "Хэрэглэгч",
+                  rating,
+                  text:
+                    typeof item?.text === "string" ? item.text.trim() : "",
+                  date:
+                    typeof item?.date === "string" && item.date.trim()
+                      ? item.date
+                      : null,
+                };
+              })
+              .filter(
+                (item): item is Review =>
+                  !!item && typeof item.text === "string" && item.text.length > 0,
+              )
+          : [];
+
+        if (!cancelled) {
+          setTechnician(mapped);
+          setReviews(mappedReviews);
+        }
       } catch (err) {
         if (!cancelled) {
+          setTechnician(null);
+          setReviews([]);
           setErrorMessage(
             err instanceof Error
               ? err.message
@@ -130,6 +173,7 @@ export function useRepairmanProfileController(): RepairmanProfileController {
   return {
     insetsBottom: insets.bottom,
     technician,
+    reviews,
     subtitle,
     isLoading,
     errorMessage,
