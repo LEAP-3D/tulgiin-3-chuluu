@@ -5,14 +5,16 @@ import { Ionicons } from "@expo/vector-icons";
 import Header from "@/components/_tabsComponents/_header/Header";
 import { HapticTab } from "@/components/haptic-tab";
 import { useSupabaseAuth } from "@/lib/supabase-auth";
+import { useTabUnreadBadges } from "@/lib/hooks/useTabUnreadBadges";
 
 export default function TabLayout() {
   const router = useRouter();
   const pathname = usePathname();
   const params = useGlobalSearchParams<{ orderId?: string | string[] }>();
-  const { isLoaded, isSignedIn, user } = useSupabaseAuth();
+  const { isLoaded, isSignedIn, user, session } = useSupabaseAuth();
   const [authReady, setAuthReady] = useState(false);
   const [profileRole, setProfileRole] = useState<"user" | "worker" | null>(null);
+  const [profileId, setProfileId] = useState<string | null>(null);
   const [isRoleLoaded, setIsRoleLoaded] = useState(false);
   const apiBaseUrl =
     process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:3000";
@@ -32,6 +34,7 @@ export default function TabLayout() {
     const email = (user?.email ?? "").trim();
     if (!email) {
       setProfileRole("user");
+      setProfileId(null);
       setIsRoleLoaded(true);
       return;
     }
@@ -45,9 +48,15 @@ export default function TabLayout() {
         const payload = await response.json().catch(() => null);
         const data = payload?.data ?? null;
         const role = data?.role === "worker" ? "worker" : "user";
-        if (!cancelled) setProfileRole(role);
+        if (!cancelled) {
+          setProfileRole(role);
+          setProfileId(typeof data?.id === "string" ? data.id : null);
+        }
       } catch {
-        if (!cancelled) setProfileRole("user");
+        if (!cancelled) {
+          setProfileRole("user");
+          setProfileId(null);
+        }
       } finally {
         if (!cancelled) setIsRoleLoaded(true);
       }
@@ -66,6 +75,17 @@ export default function TabLayout() {
   const isZurwasThread =
     pathname.startsWith("/zurwas") && typeof zurwasOrderId === "string" && zurwasOrderId.length > 0;
   const shouldShowGlobalHeader = !pathname.startsWith("/zurwas") || !isZurwasThread;
+  const { hasUnreadOrder, hasUnreadZurwas } = useTabUnreadBadges({
+    apiBaseUrl,
+    isLoaded,
+    isSignedIn,
+    email: (user?.email ?? "").trim(),
+    userId: user?.id,
+    sessionToken: session?.access_token,
+    profileId,
+    profileRole,
+    pathname,
+  });
 
   useEffect(() => {
     if (!isWorker) return;
@@ -118,6 +138,7 @@ export default function TabLayout() {
             tabBarIcon: ({ color }) => (
               <View style={styles.iconWrap}>
                 <Ionicons name="copy-outline" size={24} color={color} />
+                {hasUnreadOrder ? <View style={styles.tabRedDot} /> : null}
               </View>
             ),
           }}
@@ -130,6 +151,7 @@ export default function TabLayout() {
             tabBarIcon: ({ color }) => (
               <View style={styles.iconWrap}>
                 <Ionicons name="chatbubble-outline" size={24} color={color} />
+                {hasUnreadZurwas ? <View style={styles.tabRedDot} /> : null}
               </View>
             ),
           }}
@@ -176,5 +198,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginTop: 1,
+  },
+  tabRedDot: {
+    position: "absolute",
+    top: -2,
+    right: -4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#E53935",
   },
 });
