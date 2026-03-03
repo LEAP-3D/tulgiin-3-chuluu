@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useSupabaseAuth } from "@/lib/supabase-auth";
@@ -13,8 +14,59 @@ import { useChatInput } from "@/features/zurwas/_components/useChatInput";
 
 export default function ZurwasScreen() {
   const router = useRouter();
-  const { isLoaded, user } = useSupabaseAuth();
+  const { isLoaded, user, session } = useSupabaseAuth();
   const params = useLocalSearchParams();
+  const [profileId, setProfileId] = useState<string | null>(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(false);
+  const apiBaseUrl =
+    process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:3000";
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    const email = (user?.email ?? "").trim();
+    if (!email) {
+      setProfileId(null);
+      setIsProfileLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    const resolveProfile = async () => {
+      setIsProfileLoading(true);
+      try {
+        const response = await fetch(
+          `${apiBaseUrl}/profiles?email=${encodeURIComponent(email)}`,
+          session?.access_token
+            ? {
+                headers: {
+                  Authorization: `Bearer ${session.access_token}`,
+                },
+              }
+            : undefined,
+        );
+        const payload = await response.json().catch(() => null);
+        const data = payload?.data ?? null;
+        if (!cancelled) {
+          setProfileId(typeof data?.id === "string" ? data.id : user?.id ?? null);
+        }
+      } catch {
+        if (!cancelled) {
+          setProfileId(user?.id ?? null);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsProfileLoading(false);
+        }
+      }
+    };
+
+    void resolveProfile();
+    return () => {
+      cancelled = true;
+    };
+  }, [apiBaseUrl, isLoaded, session?.access_token, user?.email, user?.id]);
+
+  const isContextReady = isLoaded && !isProfileLoading;
   const orderId = getParam(params.orderId as string | string[] | undefined);
   const userProfileIdParam = getParam(
     params.userProfileId as string | string[] | undefined,
@@ -22,13 +74,16 @@ export default function ZurwasScreen() {
   const workerProfileIdParam = getParam(
     params.workerProfileId as string | string[] | undefined,
   );
-  const profileId = user?.id ?? null;
   const isChatReady = !!orderId && !!profileId;
 
-  const listState = useConversationList({ isLoaded, profileId, orderId });
+  const listState = useConversationList({
+    isLoaded: isContextReady,
+    profileId,
+    orderId,
+  });
 
   const threadState = useConversationThread({
-    isLoaded,
+    isLoaded: isContextReady,
     orderId: orderId ?? null,
     profileId,
     userProfileIdParam: userProfileIdParam ?? null,

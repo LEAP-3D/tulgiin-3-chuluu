@@ -24,6 +24,10 @@ export const zurwasBaseStyles = {
     paddingVertical: 10,
     backgroundColor: "#FFFFFF",
   },
+  listItemUnread: {
+    borderColor: "#FFD6B0",
+    backgroundColor: "#FFF9F4",
+  },
   listItemPressed: {
     backgroundColor: "#FAFAFA",
   },
@@ -81,6 +85,20 @@ export const zurwasBaseStyles = {
   listSubtitleUnread: {
     fontWeight: "700",
     color: "#1F1F1F",
+  },
+  unreadPill: {
+    marginTop: 6,
+    alignSelf: "flex-start",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
+    backgroundColor: "#FF8A1E",
+  },
+  unreadPillText: {
+    color: "#FFFFFF",
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.3,
   },
   listTime: {
     fontSize: 12,

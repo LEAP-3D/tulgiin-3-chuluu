@@ -1,11 +1,12 @@
 import { Redirect, Tabs, useGlobalSearchParams, usePathname, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Platform, StyleSheet, View } from "react-native";
+import { View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Header from "@/components/_tabsComponents/_header/Header";
 import { HapticTab } from "@/components/haptic-tab";
 import { useSupabaseAuth } from "@/lib/supabase-auth";
 import { useTabUnreadBadges } from "@/lib/hooks/useTabUnreadBadges";
+import { styles } from "./tabs-layout.styles";
 
 export default function TabLayout() {
   const router = useRouter();
@@ -44,6 +45,13 @@ export default function TabLayout() {
       try {
         const response = await fetch(
           `${apiBaseUrl}/profiles?email=${encodeURIComponent(email)}`,
+          session?.access_token
+            ? {
+                headers: {
+                  Authorization: `Bearer ${session.access_token}`,
+                },
+              }
+            : undefined,
         );
         const payload = await response.json().catch(() => null);
         const data = payload?.data ?? null;
@@ -66,7 +74,7 @@ export default function TabLayout() {
     return () => {
       cancelled = true;
     };
-  }, [apiBaseUrl, isLoaded, user?.email]);
+  }, [apiBaseUrl, isLoaded, session?.access_token, user?.email]);
 
   const isWorker = profileRole === "worker";
   const zurwasOrderId = Array.isArray(params.orderId)
@@ -172,40 +180,3 @@ export default function TabLayout() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: "#FFFFFF",
-    borderTopWidth: 1,
-    borderTopColor: "#E6E6E6",
-    height: Platform.OS === "ios" ? 84 : 70,
-    paddingTop: 7,
-    paddingBottom: Platform.OS === "ios" ? 10 : 6,
-  },
-  tabItem: {
-    paddingVertical: 1,
-  },
-  tabLabel: {
-    fontSize: 11,
-    lineHeight: 13,
-    fontWeight: "500",
-    marginTop: 1,
-    marginBottom: 0,
-  },
-  iconWrap: {
-    width: 24,
-    height: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 1,
-  },
-  tabRedDot: {
-    position: "absolute",
-    top: -2,
-    right: -4,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#E53935",
-  },
-});

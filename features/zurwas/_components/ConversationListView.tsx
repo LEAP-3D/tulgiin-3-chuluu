@@ -60,6 +60,7 @@ export function ConversationListView({
       <Pressable
         style={({ pressed }) => [
           styles.listItem,
+          isUnread && styles.listItemUnread,
           pressed && styles.listItemPressed,
         ]}
         onPress={() => onSelectConversation(item)}
@@ -100,6 +101,11 @@ export function ConversationListView({
           >
             {lastMessage?.body ?? "Шинэ чат"}
           </Text>
+          {isUnread ? (
+            <View style={styles.unreadPill}>
+              <Text style={styles.unreadPillText}>ШИНЭ</Text>
+            </View>
+          ) : null}
         </View>
       </Pressable>
     );
