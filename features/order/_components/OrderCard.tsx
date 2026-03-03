@@ -6,6 +6,7 @@ import type { OrderItem } from "./types";
 import { getWorkerActions } from "./helpers";
 import { getStatusColor } from "@/lib/status-colors";
 import { OrderCardActions } from "./OrderCardActions";
+import { OrderReviewSection } from "./OrderReviewSection";
 
 type Props = {
   order: OrderItem;
@@ -23,6 +24,7 @@ type Props = {
   onCancel: (orderId: string) => void;
   onPay: (orderId: string) => void;
   onConfirmCash: (orderId: string) => void;
+  onSubmitReview: (orderId: string, rating: number, comment: string) => void;
 };
 
 export function OrderCard({
@@ -41,6 +43,7 @@ export function OrderCard({
   onCancel,
   onPay,
   onConfirmCash,
+  onSubmitReview,
 }: Props) {
   const label = order.service_label ?? order.service_key ?? "Үйлчилгээ";
   const statusText =
@@ -183,6 +186,19 @@ export function OrderCard({
         confirmCashLabel={confirmCashLabel}
         onConfirmCash={() => onConfirmCash(order.id)}
       />
+
+      {!isWorkerView ? (
+        <OrderReviewSection
+          isWorkerView={isWorkerView}
+          orderStatus={order.status}
+          paymentStatus={order.payment_status}
+          reviewRating={order.review_rating}
+          reviewComment={order.review_comment}
+          reviewedAt={order.reviewed_at}
+          isSubmitting={isUpdating && updatingStatus === "review"}
+          onSubmit={(rating, comment) => onSubmitReview(order.id, rating, comment)}
+        />
+      ) : null}
     </View>
   );
 }

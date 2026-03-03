@@ -116,6 +116,7 @@ export default function OrderScreen() {
             onCancel={ordersState.cancelOrder}
             onPay={handlePay}
             onConfirmCash={ordersState.confirmCashPayment}
+            onSubmitReview={ordersState.submitReview}
             onRetry={handleRetry}
           />
         ) : (

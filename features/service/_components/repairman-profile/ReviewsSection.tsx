@@ -1,21 +1,50 @@
 import { Text, View } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { styles } from "../../repairman-profile.styles";
-import { REVIEWS } from "./constants";
+import type { Review } from "./types";
 
-export function ReviewsSection() {
+type Props = {
+  reviews: Review[];
+};
+
+const formatDate = (value?: string | null) => {
+  if (!value) return "—";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "—";
+  return parsed.toLocaleDateString("mn-MN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+};
+
+const getInitial = (name: string) => {
+  const trimmed = name.trim();
+  if (!trimmed) return "Х";
+  return trimmed[0]?.toUpperCase() ?? "Х";
+};
+
+export function ReviewsSection({ reviews }: Props) {
   return (
     <>
       <View style={styles.reviewHeader}>
         <Text style={styles.sectionTitle}>Сэтгэгдэл</Text>
-        <Text style={styles.reviewAll}>Бүгд</Text>
+        <Text style={styles.reviewAll}>{reviews.length}</Text>
       </View>
 
-      {REVIEWS.map((review) => (
+      {reviews.length === 0 ? (
+        <View style={styles.reviewCard}>
+          <Text style={styles.reviewText}>Одоогоор сэтгэгдэл байхгүй байна.</Text>
+        </View>
+      ) : null}
+
+      {reviews.map((review) => (
         <View key={review.id} style={styles.reviewCard}>
           <View style={styles.reviewTopRow}>
             <View style={styles.reviewAvatar}>
-              <Text style={styles.reviewAvatarText}>X</Text>
+              <Text style={styles.reviewAvatarText}>
+                {getInitial(review.author)}
+              </Text>
             </View>
             <View style={styles.reviewTitleBlock}>
               <Text style={styles.reviewAuthor}>{review.author}</Text>
@@ -26,7 +55,7 @@ export function ReviewsSection() {
             </View>
           </View>
           <Text style={styles.reviewText}>{review.text}</Text>
-          <Text style={styles.reviewDate}>{review.date}</Text>
+          <Text style={styles.reviewDate}>{formatDate(review.date)}</Text>
         </View>
       ))}
     </>
