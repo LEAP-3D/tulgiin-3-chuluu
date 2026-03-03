@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { ConversationItem, MessageItem, ProfileInfo } from "./types";
 
@@ -30,14 +30,27 @@ export function useConversationList({
   >({});
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const isMountedRef = useRef(true);
+  const isFetchingRef = useRef(false);
 
   useEffect(() => {
-    if (!isLoaded || !profileId || orderId) return;
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
-    let cancelled = false;
-    const loadConversations = async () => {
-      setIsLoading(true);
-      setErrorMessage(null);
+  const loadConversations = useCallback(
+    async (options?: { silent?: boolean }) => {
+      if (!isLoaded || !profileId || orderId) return;
+      if (isFetchingRef.current) return;
+      isFetchingRef.current = true;
+
+      if (!options?.silent && isMountedRef.current) {
+        setIsLoading(true);
+        setErrorMessage(null);
+      }
+
       try {
         const { data, error } = await supabase
           .from("conversations")
@@ -52,7 +65,7 @@ export function useConversationList({
         if (error) throw error;
 
         const list = Array.isArray(data) ? data : [];
-        if (!cancelled) {
+        if (isMountedRef.current) {
           setConversations(list as ConversationItem[]);
         }
 
@@ -96,16 +109,16 @@ export function useConversationList({
                     : null,
             };
           });
-          if (!cancelled) {
+          if (isMountedRef.current) {
             setProfileMap(map);
           }
-        } else if (!cancelled) {
+        } else if (isMountedRef.current) {
           setProfileMap({});
         }
 
         const conversationIds = list.map((item) => item.id).filter(Boolean);
         if (conversationIds.length === 0) {
-          if (!cancelled) setLastMessages({});
+          if (isMountedRef.current) setLastMessages({});
           return;
         }
 
@@ -128,11 +141,11 @@ export function useConversationList({
           }
         });
 
-        if (!cancelled) {
+        if (isMountedRef.current) {
           setLastMessages(latestByConversation);
         }
       } catch (err) {
-        if (!cancelled) {
+        if (isMountedRef.current && !options?.silent) {
           setErrorMessage(
             err instanceof Error
               ? err.message
@@ -140,17 +153,87 @@ export function useConversationList({
           );
         }
       } finally {
-        if (!cancelled) {
+        if (isMountedRef.current && !options?.silent) {
           setIsLoading(false);
         }
+        isFetchingRef.current = false;
       }
+    },
+    [isLoaded, orderId, profileId],
+  );
+
+  useEffect(() => {
+    if (!isLoaded || !profileId || orderId) return;
+    void loadConversations();
+  }, [isLoaded, orderId, profileId, loadConversations]);
+
+  useEffect(() => {
+    if (!isLoaded || !profileId || orderId) return;
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleRefresh = () => {
+      if (refreshTimer) {
+        clearTimeout(refreshTimer);
+      }
+      refreshTimer = setTimeout(() => {
+        void loadConversations({ silent: true });
+      }, 220);
     };
 
-    loadConversations();
+    const convoUserChannel = supabase
+      .channel(`zurwas-list-conversations-user-${profileId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "conversations",
+          filter: `user_profile_id=eq.${profileId}`,
+        },
+        scheduleRefresh,
+      )
+      .subscribe();
+
+    const convoWorkerChannel = supabase
+      .channel(`zurwas-list-conversations-worker-${profileId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "conversations",
+          filter: `worker_profile_id=eq.${profileId}`,
+        },
+        scheduleRefresh,
+      )
+      .subscribe();
+
+    const messageChannel = supabase
+      .channel(`zurwas-list-messages-${profileId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "messages",
+        },
+        scheduleRefresh,
+      )
+      .subscribe();
+
+    const intervalId = setInterval(() => {
+      void loadConversations({ silent: true });
+    }, 5000);
+
     return () => {
-      cancelled = true;
+      if (refreshTimer) {
+        clearTimeout(refreshTimer);
+      }
+      clearInterval(intervalId);
+      supabase.removeChannel(convoUserChannel);
+      supabase.removeChannel(convoWorkerChannel);
+      supabase.removeChannel(messageChannel);
     };
-  }, [isLoaded, orderId, profileId]);
+  }, [isLoaded, orderId, profileId, loadConversations]);
 
   return {
     conversations,

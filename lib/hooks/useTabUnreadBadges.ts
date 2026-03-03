@@ -32,6 +32,7 @@ export function useTabUnreadBadges({
   const [hasUnreadOrder, setHasUnreadOrder] = useState(false);
   const [hasUnreadZurwas, setHasUnreadZurwas] = useState(false);
   const knownOrderIdsRef = useRef<Set<string> | null>(null);
+  const knownOrderStatusRef = useRef<Record<string, string | null>>({});
 
   useEffect(() => {
     if (pathname.startsWith("/order")) {
@@ -41,6 +42,7 @@ export function useTabUnreadBadges({
 
   useEffect(() => {
     knownOrderIdsRef.current = null;
+    knownOrderStatusRef.current = {};
     setHasUnreadOrder(false);
     setHasUnreadZurwas(false);
   }, [userId]);
@@ -71,15 +73,27 @@ export function useTabUnreadBadges({
             )
             .filter((id: string | null): id is string => !!id),
         );
+        const nextStatusById: Record<string, string | null> = {};
+        orderRows.forEach((item: { id?: unknown; status?: unknown }) => {
+          if (typeof item?.id !== "string") return;
+          nextStatusById[item.id] =
+            typeof item.status === "string" ? item.status : null;
+        });
 
         const knownIds = knownOrderIdsRef.current;
         if (knownIds) {
           const hasNewOrder = Array.from(nextIds).some((id) => !knownIds.has(id));
-          if (hasNewOrder && !pathname.startsWith("/order")) {
+          const hasStatusChange = Object.entries(nextStatusById).some(
+            ([id, status]) =>
+              id in knownOrderStatusRef.current &&
+              knownOrderStatusRef.current[id] !== status,
+          );
+          if ((hasNewOrder || hasStatusChange) && !pathname.startsWith("/order")) {
             setHasUnreadOrder(true);
           }
         }
         knownOrderIdsRef.current = nextIds;
+        knownOrderStatusRef.current = nextStatusById;
 
         if (!profileId) return;
 
@@ -120,13 +134,108 @@ export function useTabUnreadBadges({
     };
 
     void refreshBadges();
+    const realtimeChannels: Array<ReturnType<typeof supabase.channel>> = [];
+
+    if (profileId && profileRole) {
+      const filterField =
+        profileRole === "worker" ? "worker_profile_id" : "user_profile_id";
+      const orderChannel = supabase
+        .channel(`tab-badge-orders-${profileRole}-${profileId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "orders",
+            filter: `${filterField}=eq.${profileId}`,
+          },
+          (payload) => {
+            const eventType = payload.eventType;
+            if (!pathname.startsWith("/order")) {
+              if (eventType === "INSERT") {
+                setHasUnreadOrder(true);
+              }
+              if (eventType === "UPDATE") {
+                const nextStatus =
+                  typeof (payload.new as { status?: unknown })?.status === "string"
+                    ? ((payload.new as { status?: string }).status ?? null)
+                    : null;
+                const prevStatus =
+                  typeof (payload.old as { status?: unknown })?.status === "string"
+                    ? ((payload.old as { status?: string }).status ?? null)
+                    : null;
+                if (nextStatus !== prevStatus) {
+                  setHasUnreadOrder(true);
+                }
+              }
+            }
+            void refreshBadges();
+          },
+        )
+        .subscribe();
+      realtimeChannels.push(orderChannel);
+
+      const convoUserChannel = supabase
+        .channel(`tab-badge-conversations-user-${profileId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "conversations",
+            filter: `user_profile_id=eq.${profileId}`,
+          },
+          () => {
+            void refreshBadges();
+          },
+        )
+        .subscribe();
+      realtimeChannels.push(convoUserChannel);
+
+      const convoWorkerChannel = supabase
+        .channel(`tab-badge-conversations-worker-${profileId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "conversations",
+            filter: `worker_profile_id=eq.${profileId}`,
+          },
+          () => {
+            void refreshBadges();
+          },
+        )
+        .subscribe();
+      realtimeChannels.push(convoWorkerChannel);
+
+      const messageChannel = supabase
+        .channel(`tab-badge-messages-${profileId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "messages",
+          },
+          () => {
+            void refreshBadges();
+          },
+        )
+        .subscribe();
+      realtimeChannels.push(messageChannel);
+    }
+
     const intervalId = setInterval(() => {
       void refreshBadges();
-    }, 12000);
+    }, 5000);
 
     return () => {
       cancelled = true;
       clearInterval(intervalId);
+      realtimeChannels.forEach((channel) => {
+        supabase.removeChannel(channel);
+      });
     };
   }, [
     apiBaseUrl,

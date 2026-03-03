@@ -70,6 +70,7 @@ export function useChatPolling({
       }
     };
 
+    void pollForMessages();
     const timer = setInterval(pollForMessages, MESSAGE_POLL_INTERVAL_MS);
     return () => {
       cancelled = true;
