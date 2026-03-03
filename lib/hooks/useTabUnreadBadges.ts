@@ -33,6 +33,7 @@ export function useTabUnreadBadges({
   const [hasUnreadZurwas, setHasUnreadZurwas] = useState(false);
   const knownOrderIdsRef = useRef<Set<string> | null>(null);
   const knownOrderStatusRef = useRef<Record<string, string | null>>({});
+  const orderScopeRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (pathname.startsWith("/order")) {
@@ -43,9 +44,17 @@ export function useTabUnreadBadges({
   useEffect(() => {
     knownOrderIdsRef.current = null;
     knownOrderStatusRef.current = {};
+    orderScopeRef.current = null;
     setHasUnreadOrder(false);
     setHasUnreadZurwas(false);
   }, [userId]);
+
+  useEffect(() => {
+    knownOrderIdsRef.current = null;
+    knownOrderStatusRef.current = {};
+    orderScopeRef.current = null;
+    setHasUnreadOrder(false);
+  }, [email, profileRole]);
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn || !email) return;
@@ -58,42 +67,47 @@ export function useTabUnreadBadges({
           ? { Authorization: `Bearer ${sessionToken}` }
           : {};
 
-        let orderUrl = `${apiBaseUrl}/orders?email=${encodeURIComponent(email)}`;
-        if (profileRole === "worker") {
-          orderUrl = `${apiBaseUrl}/orders?worker_email=${encodeURIComponent(email)}`;
-        }
-
-        const ordersResponse = await fetch(orderUrl, { headers: authHeader });
-        const ordersPayload = await ordersResponse.json().catch(() => null);
-        const orderRows = Array.isArray(ordersPayload?.data) ? ordersPayload.data : [];
-        const nextIds = new Set(
-          orderRows
-            .map((item: { id?: unknown }) =>
-              typeof item?.id === "string" ? item.id : null,
-            )
-            .filter((id: string | null): id is string => !!id),
-        );
-        const nextStatusById: Record<string, string | null> = {};
-        orderRows.forEach((item: { id?: unknown; status?: unknown }) => {
-          if (typeof item?.id !== "string") return;
-          nextStatusById[item.id] =
-            typeof item.status === "string" ? item.status : null;
-        });
-
-        const knownIds = knownOrderIdsRef.current;
-        if (knownIds) {
-          const hasNewOrder = Array.from(nextIds).some((id) => !knownIds.has(id));
-          const hasStatusChange = Object.entries(nextStatusById).some(
-            ([id, status]) =>
-              id in knownOrderStatusRef.current &&
-              knownOrderStatusRef.current[id] !== status,
-          );
-          if ((hasNewOrder || hasStatusChange) && !pathname.startsWith("/order")) {
-            setHasUnreadOrder(true);
+        if (profileRole) {
+          let orderUrl = `${apiBaseUrl}/orders?email=${encodeURIComponent(email)}`;
+          if (profileRole === "worker") {
+            orderUrl = `${apiBaseUrl}/orders?worker_email=${encodeURIComponent(email)}`;
           }
+
+          const ordersResponse = await fetch(orderUrl, { headers: authHeader });
+          const ordersPayload = await ordersResponse.json().catch(() => null);
+          const orderRows = Array.isArray(ordersPayload?.data) ? ordersPayload.data : [];
+          const nextIds = new Set(
+            orderRows
+              .map((item: { id?: unknown }) =>
+                typeof item?.id === "string" ? item.id : null,
+              )
+              .filter((id: string | null): id is string => !!id),
+          );
+          const nextStatusById: Record<string, string | null> = {};
+          orderRows.forEach((item: { id?: unknown; status?: unknown }) => {
+            if (typeof item?.id !== "string") return;
+            nextStatusById[item.id] =
+              typeof item.status === "string" ? item.status : null;
+          });
+
+          const currentScope = `${profileRole}:${email}`;
+          const isNewScope = orderScopeRef.current !== currentScope;
+          orderScopeRef.current = currentScope;
+
+          const knownIds = knownOrderIdsRef.current;
+          if (!isNewScope && knownIds) {
+            const hasStatusChange = Object.entries(nextStatusById).some(
+              ([id, status]) =>
+                id in knownOrderStatusRef.current &&
+                knownOrderStatusRef.current[id] !== status,
+            );
+            if (hasStatusChange && !pathname.startsWith("/order")) {
+              setHasUnreadOrder(true);
+            }
+          }
+          knownOrderIdsRef.current = nextIds;
+          knownOrderStatusRef.current = nextStatusById;
         }
-        knownOrderIdsRef.current = nextIds;
-        knownOrderStatusRef.current = nextStatusById;
 
         if (!profileId) return;
 
@@ -218,7 +232,16 @@ export function useTabUnreadBadges({
             schema: "public",
             table: "messages",
           },
-          () => {
+          (payload) => {
+            const senderProfileId = (payload.new as { sender_profile_id?: unknown })
+              ?.sender_profile_id;
+            if (
+              typeof senderProfileId === "string" &&
+              senderProfileId !== profileId &&
+              !pathname.startsWith("/zurwas")
+            ) {
+              setHasUnreadZurwas(true);
+            }
             void refreshBadges();
           },
         )
