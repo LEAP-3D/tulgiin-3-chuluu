@@ -28,6 +28,9 @@ export type OrderItem = {
   payment_followup_link?: string | null;
   payment_transaction_id?: string | null;
   payment_paid_at?: string | null;
+  review_rating?: number | null;
+  review_comment?: string | null;
+  reviewed_at?: string | null;
 };
 
 export type WorkerProfile = {

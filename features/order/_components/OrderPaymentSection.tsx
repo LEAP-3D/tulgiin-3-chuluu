@@ -1,4 +1,4 @@
-import { Pressable, Text, View, StyleSheet } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { orderDetailStyles } from "../order.detail.styles";
 import { styles as orderStyles } from "../order.styles";
 
@@ -10,6 +10,7 @@ interface OrderPaymentSectionProps {
   showPaymentCard: boolean;
   showUserPayButton: boolean;
   showWorkerCashConfirm: boolean;
+  isConfirmingCash?: boolean;
   onCreatePayment: () => void;
   onPay: () => void;
   onConfirmCash: () => void;
@@ -23,6 +24,7 @@ export function OrderPaymentSection({
   showPaymentCard,
   showUserPayButton,
   showWorkerCashConfirm,
+  isConfirmingCash = false,
   onCreatePayment,
   onPay,
   onConfirmCash,
@@ -104,16 +106,21 @@ export function OrderPaymentSection({
 
       {showWorkerCashConfirm && (
         <Pressable
-          style={[orderStyles.actionButton, orderStyles.acceptButton]}
+          disabled={isConfirmingCash}
+          style={[
+            orderStyles.actionButton,
+            orderStyles.acceptButton,
+            isConfirmingCash && orderStyles.actionButtonDisabled,
+          ]}
           onPress={onConfirmCash}
           accessible={true}
           accessibilityLabel="Бэлнээр төлснийг батлах"
         >
-          <Text style={orderStyles.actionText}>Бэлнээр төлснийг батлах</Text>
+          <Text style={orderStyles.actionText}>
+            {isConfirmingCash ? "Ачаалж байна..." : "Бэлнээр төлснийг батлах"}
+          </Text>
         </Pressable>
       )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({});

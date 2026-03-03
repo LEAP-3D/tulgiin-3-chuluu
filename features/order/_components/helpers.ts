@@ -38,6 +38,17 @@ export const mapOrder = (item: any): OrderItem => ({
   payment_followup_link: item.payment_followup_link ?? null,
   payment_transaction_id: item.payment_transaction_id ?? null,
   payment_paid_at: item.payment_paid_at ?? null,
+  review_rating: (() => {
+    if (typeof item.review_rating === "number") return item.review_rating;
+    if (typeof item.review_rating === "string") {
+      const parsed = Number(item.review_rating);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+  })(),
+  review_comment:
+    typeof item.review_comment === "string" ? item.review_comment : null,
+  reviewed_at: item.reviewed_at ?? null,
 });
 
 export const buildTimeline = (order: OrderItem | null): TimelineItem[] => {
