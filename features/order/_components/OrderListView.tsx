@@ -22,6 +22,7 @@ type Props = {
   onComplete: (orderId: string) => void;
   onCancel: (orderId: string) => void;
   onPay: (orderId: string) => void;
+  onConfirmCash: (orderId: string) => void;
   onRetry?: () => void;
 };
 
@@ -42,6 +43,7 @@ export function OrderListView({
   onComplete,
   onCancel,
   onPay,
+  onConfirmCash,
   onRetry,
 }: Props) {
   return (
@@ -77,6 +79,7 @@ export function OrderListView({
             onComplete={onComplete}
             onCancel={onCancel}
             onPay={onPay}
+            onConfirmCash={onConfirmCash}
           />
         ))
       )}

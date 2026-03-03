@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "expo-router";
+import { useIsFocused } from "@react-navigation/native";
 import { Alert, Linking, ScrollView, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { styles } from "@/features/order/order.styles";
@@ -14,6 +15,8 @@ export default function OrderScreen() {
   const router = useRouter();
   const apiBaseUrl =
     process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:3000";
+  const isFocused = useIsFocused();
+  const didRefreshOnFocusRef = useRef(false);
   const [showDetail, setShowDetail] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<OrderItem | null>(null);
 
@@ -45,6 +48,17 @@ export default function OrderScreen() {
       return updated && updated !== current ? updated : current;
     });
   }, [ordersState.orders, showDetail]);
+
+  useEffect(() => {
+    if (isFocused) {
+      if (!didRefreshOnFocusRef.current) {
+        ordersState.retryLoadOrders?.();
+        didRefreshOnFocusRef.current = true;
+      }
+      return;
+    }
+    didRefreshOnFocusRef.current = false;
+  }, [isFocused, ordersState]);
 
   const isWorkerView = ordersState.profileRole === "worker";
   const handleComplete = (orderId: string) => {
@@ -101,6 +115,7 @@ export default function OrderScreen() {
             onComplete={handleComplete}
             onCancel={ordersState.cancelOrder}
             onPay={handlePay}
+            onConfirmCash={ordersState.confirmCashPayment}
             onRetry={handleRetry}
           />
         ) : (
@@ -116,7 +131,6 @@ export default function OrderScreen() {
             isCustomerLoading={detailState.isCustomerLoading}
             customerError={detailState.customerError}
             attachments={detailState.attachments}
-            timeline={detailState.timeline}
             updatingOrderId={ordersState.updatingOrderId}
             updatingStatus={ordersState.updatingStatus}
             onBack={() => setShowDetail(false)}
@@ -139,6 +153,7 @@ export default function OrderScreen() {
             onCancel={ordersState.cancelOrder}
             onPay={handlePay}
             onConfirmCash={ordersState.confirmCashPayment}
+            onSubmitReview={ordersState.submitReview}
           />
         )}
       </ScrollView>

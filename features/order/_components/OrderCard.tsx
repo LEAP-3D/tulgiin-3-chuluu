@@ -5,6 +5,7 @@ import { SERVICE_EMOJIS } from "@/constants/services";
 import type { OrderItem } from "./types";
 import { getWorkerActions } from "./helpers";
 import { getStatusColor } from "@/lib/status-colors";
+import { OrderCardActions } from "./OrderCardActions";
 
 type Props = {
   order: OrderItem;
@@ -21,6 +22,7 @@ type Props = {
   onComplete: (orderId: string) => void;
   onCancel: (orderId: string) => void;
   onPay: (orderId: string) => void;
+  onConfirmCash: (orderId: string) => void;
 };
 
 export function OrderCard({
@@ -38,6 +40,7 @@ export function OrderCard({
   onComplete,
   onCancel,
   onPay,
+  onConfirmCash,
 }: Props) {
   const label = order.service_label ?? order.service_key ?? "Үйлчилгээ";
   const statusText =
@@ -51,6 +54,15 @@ export function OrderCard({
   const secondary = actions?.secondary;
   const isUpdating = updatingOrderId === order.id;
   const showActions = !!primary && !!secondary;
+  const showWorkerCashConfirm =
+    isWorkerView &&
+    order.payment_method === "cash" &&
+    order.payment_status === "pending";
+  const showUserPayButton =
+    !isWorkerView &&
+    order.payment_method === "bank_app" &&
+    order.payment_status === "pending" &&
+    !!order.payment_followup_link;
 
   const handleStatusChange = (status: string) => {
     switch (status) {
@@ -102,6 +114,10 @@ export function OrderCard({
       ? "Ачаалж байна..."
       : (secondary?.label ?? "");
   const orderCode = order.id.slice(0, 8).toUpperCase();
+  const confirmCashLabel =
+    isUpdating && updatingStatus === "payment"
+      ? "Ачаалж байна..."
+      : "Бэлнээр төлснийг батлах";
 
   return (
     <View key={order.id} style={styles.orderCard}>
@@ -154,51 +170,19 @@ export function OrderCard({
         </View>
         <Text style={styles.chevron}>›</Text>
       </Pressable>
-      {showActions ? (
-        <View style={styles.orderActions}>
-          <Pressable
-            disabled={isUpdating}
-            style={[
-              styles.actionButton,
-              styles.acceptButton,
-              isUpdating && styles.actionButtonDisabled,
-            ]}
-            onPress={() => handleAction(primary)}
-            accessibilityLabel={primaryLabel}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: isUpdating }}
-          >
-            <Text style={styles.actionText}>{primaryLabel}</Text>
-          </Pressable>
-          <Pressable
-            disabled={isUpdating}
-            style={[
-              styles.actionButton,
-              styles.rejectButton,
-              isUpdating && styles.actionButtonDisabled,
-            ]}
-            onPress={() => handleAction(secondary)}
-            accessibilityLabel={secondaryLabel}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: isUpdating }}
-          >
-            <Text style={styles.actionTextDark}>{secondaryLabel}</Text>
-          </Pressable>
-        </View>
-      ) : null}
-      {!isWorkerView &&
-      order.payment_method === "bank_app" &&
-      order.payment_status === "pending" &&
-      order.payment_followup_link ? (
-        <Pressable
-          style={[styles.actionButton, styles.acceptButton]}
-          onPress={() => onPay(order.id)}
-          accessibilityLabel="Төлбөр төлөх"
-          accessibilityRole="button"
-        >
-          <Text style={styles.actionText}>Төлбөр төлөх</Text>
-        </Pressable>
-      ) : null}
+      <OrderCardActions
+        showActions={showActions}
+        isUpdating={isUpdating}
+        primaryLabel={primaryLabel}
+        secondaryLabel={secondaryLabel}
+        onPrimaryPress={() => handleAction(primary)}
+        onSecondaryPress={() => handleAction(secondary)}
+        showUserPayButton={showUserPayButton}
+        onPay={() => onPay(order.id)}
+        showWorkerCashConfirm={showWorkerCashConfirm}
+        confirmCashLabel={confirmCashLabel}
+        onConfirmCash={() => onConfirmCash(order.id)}
+      />
     </View>
   );
 }

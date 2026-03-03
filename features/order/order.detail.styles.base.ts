@@ -163,4 +163,57 @@ export const orderDetailBase = {
   callPressed: {
     opacity: 0.75,
   },
+  reviewStarsRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  reviewStarButton: {
+    minWidth: 40,
+    height: 40,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#D8D8D8",
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  reviewStarButtonActive: {
+    borderColor: "#1F1F1F",
+    backgroundColor: "#1F1F1F",
+  },
+  reviewStarText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1F1F1F",
+  },
+  reviewStarTextActive: {
+    color: "#FFFFFF",
+  },
+  reviewInput: {
+    borderWidth: 1,
+    borderColor: "#D8D8D8",
+    borderRadius: 12,
+    minHeight: 96,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: "#1F1F1F",
+    backgroundColor: "#FFFFFF",
+  },
+  reviewRatingLabel: {
+    fontSize: 15,
+    color: "#1F1F1F",
+    fontWeight: "700",
+  },
+  reviewBody: {
+    fontSize: 13,
+    color: "#1F1F1F",
+    fontWeight: "500",
+    lineHeight: 20,
+  },
+  reviewDate: {
+    fontSize: 12,
+    color: "#7A7A7A",
+    fontWeight: "500",
+  },
 } as const;

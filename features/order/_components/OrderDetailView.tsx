@@ -2,7 +2,6 @@ import { View } from "react-native";
 import type {
   CustomerProfile,
   OrderItem,
-  TimelineItem,
   WorkerProfile,
 } from "./types";
 import { OrderDetailHeader } from "./OrderDetailHeader";
@@ -11,10 +10,10 @@ import { OrderCustomerInfoCard } from "./OrderCustomerInfoCard";
 import { OrderAddressCard } from "./OrderAddressCard";
 import { OrderDescriptionCard } from "./OrderDescriptionCard";
 import { OrderAttachmentsCard } from "./OrderAttachmentsCard";
-import { OrderStatusTimeline } from "./OrderStatusTimeline";
 import { OrderPaymentSection } from "./OrderPaymentSection";
 import { OrderActionSection } from "./OrderActionSection";
 import { OrderMapSection } from "./OrderMapSection";
+import { OrderReviewSection } from "./OrderReviewSection";
 import { orderDetailStyles } from "../order.detail.styles";
 import { getWorkerActions } from "./helpers";
 import { EnhancedTimeline } from "@/components/EnhancedTimeline";
@@ -31,7 +30,6 @@ type Props = {
   isCustomerLoading: boolean;
   customerError: string | null;
   attachments: string[];
-  timeline: TimelineItem[];
   updatingOrderId: string | null;
   updatingStatus: string | null;
   onBack: () => void;
@@ -44,6 +42,7 @@ type Props = {
   onCancel: (orderId: string) => void;
   onPay: (orderId: string) => void;
   onConfirmCash: (orderId: string) => void;
+  onSubmitReview: (orderId: string, rating: number, comment: string) => void;
 };
 
 export function OrderDetailView({
@@ -58,7 +57,6 @@ export function OrderDetailView({
   isCustomerLoading,
   customerError,
   attachments,
-  timeline,
   updatingOrderId,
   updatingStatus,
   onBack,
@@ -71,6 +69,7 @@ export function OrderDetailView({
   onCancel,
   onPay,
   onConfirmCash,
+  onSubmitReview,
 }: Props) {
   const actions = getWorkerActions(selectedOrder, profileRole, profileId);
   const primary = actions?.primary;
@@ -116,6 +115,10 @@ export function OrderDetailView({
 
   const showWorkerCashConfirm =
     isWorkerView && paymentMethod === "cash" && paymentStatus === "pending";
+  const isReviewSubmitting =
+    !!selectedOrder?.id &&
+    updatingOrderId === selectedOrder.id &&
+    updatingStatus === "review";
 
   const handleStatusChange = (status: string) => {
     if (!selectedOrder?.id) return;
@@ -185,8 +188,6 @@ export function OrderDetailView({
 
       {selectedOrder && <EnhancedTimeline order={selectedOrder} />}
 
-      <OrderStatusTimeline timeline={timeline} />
-
       <OrderPaymentSection
         paymentAmount={paymentAmount}
         paymentMethod={paymentMethod}
@@ -195,9 +196,23 @@ export function OrderDetailView({
         showPaymentCard={showPaymentCard}
         showUserPayButton={showUserPayButton}
         showWorkerCashConfirm={showWorkerCashConfirm}
+        isConfirmingCash={isUpdating && updatingStatus === "payment"}
         onCreatePayment={() => onComplete(selectedOrder?.id ?? "")}
         onPay={() => onPay(selectedOrder?.id ?? "")}
         onConfirmCash={() => onConfirmCash(selectedOrder?.id ?? "")}
+      />
+
+      <OrderReviewSection
+        isWorkerView={isWorkerView}
+        orderStatus={selectedOrder?.status}
+        paymentStatus={paymentStatus}
+        reviewRating={selectedOrder?.review_rating}
+        reviewComment={selectedOrder?.review_comment}
+        reviewedAt={selectedOrder?.reviewed_at}
+        isSubmitting={isReviewSubmitting}
+        onSubmit={(rating, comment) =>
+          onSubmitReview(selectedOrder?.id ?? "", rating, comment)
+        }
       />
     </View>
   );

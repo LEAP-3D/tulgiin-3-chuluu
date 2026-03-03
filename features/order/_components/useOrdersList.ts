@@ -20,6 +20,7 @@ type OrdersListState = {
   setCompleted: (orderId: string) => Promise<void>;
   cancelOrder: (orderId: string) => Promise<void>;
   confirmCashPayment: (orderId: string) => Promise<void>;
+  submitReview: (orderId: string, rating: number, comment: string) => Promise<void>;
   retryLoadOrders?: () => void;
 };
 
@@ -354,6 +355,48 @@ export function useOrdersList(apiBaseUrl: string): OrdersListState {
     }
   };
 
+  const submitReview = async (orderId: string, rating: number, comment: string) => {
+    setUpdatingOrderId(orderId);
+    setUpdatingStatus("review");
+    const authHeader = session?.access_token
+      ? { Authorization: `Bearer ${session.access_token}` }
+      : {};
+    try {
+      const response = await fetch(`${apiBaseUrl}/orders/${orderId}/review`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeader },
+        body: JSON.stringify({
+          rating,
+          comment,
+        }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        const message =
+          payload?.error ?? payload?.message ?? `HTTP ${response.status}`;
+        throw new Error(message);
+      }
+      const updatedOrder = payload?.data ? mapOrder(payload.data) : null;
+      if (updatedOrder) {
+        setOrders((prev) =>
+          prev.map((item) => (item.id === orderId ? updatedOrder : item)),
+        );
+      }
+      Alert.alert("Амжилттай", "Үнэлгээ болон сэтгэгдэл хадгалагдлаа.");
+    } catch (err) {
+      Alert.alert(
+        "Алдаа",
+        err instanceof Error
+          ? err.message
+          : "Үнэлгээ хадгалах үед алдаа гарлаа.",
+      );
+      throw err;
+    } finally {
+      setUpdatingOrderId(null);
+      setUpdatingStatus(null);
+    }
+  };
+
   return {
     orders,
     isLoading,
@@ -369,6 +412,7 @@ export function useOrdersList(apiBaseUrl: string): OrdersListState {
     setCompleted,
     cancelOrder,
     confirmCashPayment,
+    submitReview,
     retryLoadOrders: () => loadOrders(),
   };
 }
