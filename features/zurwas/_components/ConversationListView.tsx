@@ -101,11 +101,6 @@ export function ConversationListView({
           >
             {lastMessage?.body ?? "Шинэ чат"}
           </Text>
-          {isUnread ? (
-            <View style={styles.unreadPill}>
-              <Text style={styles.unreadPillText}>ШИНЭ</Text>
-            </View>
-          ) : null}
         </View>
       </Pressable>
     );

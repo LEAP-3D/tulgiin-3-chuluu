@@ -86,20 +86,6 @@ export const zurwasBaseStyles = {
     fontWeight: "700",
     color: "#1F1F1F",
   },
-  unreadPill: {
-    marginTop: 6,
-    alignSelf: "flex-start",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 999,
-    backgroundColor: "#FF8A1E",
-  },
-  unreadPillText: {
-    color: "#FFFFFF",
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 0.3,
-  },
   listTime: {
     fontSize: 12,
     color: "#A3A3A3",
