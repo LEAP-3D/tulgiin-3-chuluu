@@ -56,6 +56,7 @@ export function useCreateOrderAttachments(
       setAttachmentError(`Ихдээ ${MAX_ATTACHMENTS} зураг хавсаргана.`);
       return;
     }
+    const remainingSlots = MAX_ATTACHMENTS - attachmentUrls.length;
 
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
@@ -65,6 +66,8 @@ export function useCreateOrderAttachments(
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      selectionLimit: remainingSlots,
       allowsEditing: false,
       quality: 0.8,
       exif: false,
@@ -72,8 +75,10 @@ export function useCreateOrderAttachments(
 
     if (result.canceled) return;
 
-    const asset = result.assets?.[0];
-    if (!asset?.uri) {
+    const assets = (result.assets ?? [])
+      .filter((asset): asset is ImagePicker.ImagePickerAsset => !!asset?.uri)
+      .slice(0, remainingSlots);
+    if (!assets.length) {
       setAttachmentError("Зураг сонгож чадсангүй. Дахин оролдоно уу.");
       return;
     }
@@ -82,16 +87,44 @@ export function useCreateOrderAttachments(
     setAttachmentError(null);
 
     try {
-      const secureUrl = await uploadImageToCloudinary({
-        uri: asset.uri,
-        mimeType: asset.mimeType,
-        fileName: asset.fileName,
-        folder: ORDER_ATTACHMENTS_FOLDER || undefined,
-      });
-      setAttachmentUrls((prev) => {
-        if (prev.includes(secureUrl)) return prev;
-        return [...prev, secureUrl].slice(0, MAX_ATTACHMENTS);
-      });
+      const uploadResults = await Promise.all(
+        assets.map(async (asset) => {
+          try {
+            return await uploadImageToCloudinary({
+              uri: asset.uri,
+              mimeType: asset.mimeType,
+              fileName: asset.fileName,
+              folder: ORDER_ATTACHMENTS_FOLDER || undefined,
+            });
+          } catch {
+            return null;
+          }
+        }),
+      );
+
+      const uploadedUrls = uploadResults.filter(
+        (url): url is string => typeof url === "string" && url.length > 0,
+      );
+
+      if (uploadedUrls.length > 0) {
+        setAttachmentUrls((prev) => {
+          const merged = [...prev];
+          const existing = new Set(prev);
+          uploadedUrls.forEach((url) => {
+            if (existing.has(url) || merged.length >= MAX_ATTACHMENTS) return;
+            existing.add(url);
+            merged.push(url);
+          });
+          return merged;
+        });
+      }
+
+      const failedCount = assets.length - uploadedUrls.length;
+      if (failedCount > 0) {
+        setAttachmentError(
+          `${failedCount} зураг upload хийх үед алдаа гарлаа. Дахин оролдоно уу.`,
+        );
+      }
     } catch (err) {
       setAttachmentError(
         err instanceof Error

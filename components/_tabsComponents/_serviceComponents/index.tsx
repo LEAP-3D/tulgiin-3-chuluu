@@ -16,8 +16,8 @@ import MujaanIcon from "@/components/icons/_serviceIcons/mujaanIcon";
 import ShawijustgalIcon from "@/components/icons/_serviceIcons/shawijustgalIcon";
 import HalaaltIcon from "@/components/icons/_serviceIcons/halaaltIcon";
 import InternetIcon from "@/components/icons/_serviceIcons/internetIcon";
-import SparklesIcon from "@/components/icons/_serviceIcons/sparklesIcon";
 import ScreenShotIcon from "@/components/icons/screenshot";
+import { HomeCareTipsSection } from "./HomeCareTipsSection";
 import { styles } from "./index.styles";
 
 const services = [
@@ -85,36 +85,33 @@ export default function ServiceScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.divider} />
-      <ScrollView
-        contentContainerStyle={[
-          styles.content,
-          { paddingBottom: 120 + insets.bottom },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Үйлчилгээ</Text>
-          <Pressable
-            onPress={() => router.push("/service/all")}
-            hitSlop={10}
-          >
-            <Text style={styles.sectionAll}>Бүгд</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.grid}>
-          {services.map((item) => (
+      <View style={[styles.content, { paddingBottom: 14 + insets.bottom }]}>
+        <View>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Үйлчилгээ</Text>
             <Pressable
-              key={item.key}
-              style={styles.gridItem}
-              onPress={() => handleServicePress(item.label)}
+              onPress={() => router.push("/service/all")}
+              hitSlop={10}
             >
-              <View style={styles.iconWrap}>
-                <item.Icon width={28} height={28} />
-              </View>
-              <Text style={styles.iconLabel}>{item.label}</Text>
+              <Text style={styles.sectionAll}>Бүгд</Text>
             </Pressable>
-          ))}
+          </View>
+
+          <View style={styles.grid}>
+            {services.map((item) => (
+              <Pressable
+                key={item.key}
+                style={styles.gridItem}
+                onPress={() => handleServicePress(item.label)}
+              >
+                <View style={styles.iconWrap}>
+                  <item.Icon width={28} height={28} />
+                </View>
+                <Text style={styles.iconLabel}>{item.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+
         </View>
 
         <View style={styles.promoCarousel}>
@@ -155,7 +152,6 @@ export default function ServiceScreen() {
             ))}
           </ScrollView>
         </View>
-
         <View style={styles.dots}>
           {promoSlides.map((item, index) => (
             <View
@@ -164,14 +160,9 @@ export default function ServiceScreen() {
             />
           ))}
         </View>
-      </ScrollView>
 
-      <Pressable
-        style={[styles.fab, { bottom: 24 + insets.bottom }]}
-        onPress={() => router.push("/modal")}
-      >
-        <SparklesIcon width={26} height={26} />
-      </Pressable>
+        <HomeCareTipsSection />
+      </View>
     </View>
   );
 }

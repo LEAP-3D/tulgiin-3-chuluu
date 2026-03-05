@@ -1,6 +1,5 @@
 import Logo from "@/components/icons/logo";
-import { NotificationIcon } from "@/components/icons/notification";
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Header() {
@@ -9,9 +8,6 @@ export default function Header() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <Logo />
-      <Pressable onPress={() => console.log("hello")} hitSlop={10}>
-        <NotificationIcon />
-      </Pressable>
     </View>
   );
 }
@@ -22,7 +18,7 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingBottom: 0,
     paddingHorizontal: 20,
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     alignItems: "center",
     backgroundColor: "white",
   },
