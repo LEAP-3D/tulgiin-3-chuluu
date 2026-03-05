@@ -167,27 +167,37 @@ export const orderDetailBase = {
     flexDirection: "row",
     gap: 8,
   },
+  reviewStarsHeader: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    marginTop: -4,
+  },
+  reviewLiveRating: {
+    fontSize: 12,
+    color: "#6A6A6A",
+    fontWeight: "700",
+  },
   reviewStarButton: {
-    minWidth: 40,
-    height: 40,
-    borderRadius: 10,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     borderWidth: 1,
-    borderColor: "#D8D8D8",
+    borderColor: "#D4D4D4",
     backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
   },
   reviewStarButtonActive: {
-    borderColor: "#1F1F1F",
-    backgroundColor: "#1F1F1F",
+    borderColor: "#F7B500",
+    backgroundColor: "#FFF8E1",
   },
   reviewStarText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#1F1F1F",
+    fontSize: 22,
+    lineHeight: 24,
+    color: "#C8C8C8",
   },
   reviewStarTextActive: {
-    color: "#FFFFFF",
+    color: "#F7B500",
   },
   reviewInput: {
     borderWidth: 1,
@@ -200,10 +210,22 @@ export const orderDetailBase = {
     color: "#1F1F1F",
     backgroundColor: "#FFFFFF",
   },
+  reviewHelperText: {
+    fontSize: 13,
+    color: "#5F5F5F",
+    fontWeight: "600",
+    lineHeight: 20,
+  },
   reviewRatingLabel: {
     fontSize: 15,
     color: "#1F1F1F",
     fontWeight: "700",
+  },
+  reviewRatingStarsActive: {
+    color: "#F7B500",
+  },
+  reviewRatingStarsInactive: {
+    color: "#C8C8C8",
   },
   reviewBody: {
     fontSize: 13,
@@ -215,5 +237,26 @@ export const orderDetailBase = {
     fontSize: 12,
     color: "#7A7A7A",
     fontWeight: "500",
+  },
+  reviewSubmitButton: {
+    height: 44,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#1F1F1F",
+    backgroundColor: "#1F1F1F",
+  },
+  reviewSubmitButtonDisabled: {
+    borderColor: "#CFCFCF",
+    backgroundColor: "#E6E6E6",
+  },
+  reviewSubmitButtonText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  reviewSubmitButtonTextDisabled: {
+    color: "#8E8E8E",
   },
 } as const;
