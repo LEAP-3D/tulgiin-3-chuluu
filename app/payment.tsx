@@ -26,31 +26,60 @@ export default function PaymentScreen() {
       return;
     }
 
-    const parsed = Number(amount.replace(/[^\d.]/g, ""));
+    // Keep UX tolerant (users may type spaces/₮/commas), but validate a real positive amount.
+    const digitsOnly = amount.replace(/[^\d]/g, "");
+    if (digitsOnly.length === 0) {
+      Alert.alert("Алдаа", "Төлбөрийн дүн оруулна уу.");
+      return;
+    }
+
+    const parsed = Number(digitsOnly);
+
+    // Business-safe: must be a finite, positive integer amount (₮ is not fractional in common UX).
     if (!Number.isFinite(parsed) || parsed <= 0) {
       Alert.alert("Алдаа", "Төлбөрийн дүн буруу байна.");
       return;
     }
+    if (!Number.isSafeInteger(parsed)) {
+      Alert.alert("Алдаа", "Төлбөрийн дүн бүхэл тоо байх ёстой.");
+      return;
+    }
+    // Prevent accidental huge values (e.g., pasted extra zeros) that could cause wrong charging.
+    if (parsed > 1_000_000_000) {
+      Alert.alert("Алдаа", "Төлбөрийн дүн хэт их байна.");
+      return;
+    }
 
     setIsSubmitting(true);
-    const authHeader = session?.access_token
-      ? { Authorization: `Bearer ${session.access_token}` }
-      : {};
+
+    // Build headers as a single concrete object to satisfy fetch() HeadersInit typing.
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (session?.access_token) {
+      headers.Authorization = `Bearer ${session.access_token}`;
+    }
+
     try {
       const response = await fetch(`${apiBaseUrl}/orders/${orderId}/complete`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...authHeader },
+        headers,
         body: JSON.stringify({
           payment_amount: parsed,
           payment_method: method,
         }),
       });
-      const payload = await response.json().catch(() => null);
+
+      // Safer payload parsing (handles empty body / non-JSON error bodies)
+      const raw = await response.text();
+      const payload = raw ? (JSON.parse(raw) as any) : null;
+
       if (!response.ok) {
         const message =
           payload?.error ?? payload?.message ?? `HTTP ${response.status}`;
         throw new Error(message);
       }
+
       Alert.alert(
         "Амжилттай",
         method === "cash"
@@ -61,7 +90,9 @@ export default function PaymentScreen() {
     } catch (err) {
       Alert.alert(
         "Алдаа",
-        err instanceof Error ? err.message : "Төлбөр тохируулах үед алдаа гарлаа.",
+        err instanceof Error
+          ? err.message
+          : "Төлбөр тохируулах үед алдаа гарлаа.",
       );
     } finally {
       setIsSubmitting(false);
@@ -101,6 +132,7 @@ export default function PaymentScreen() {
                 Банкны апп
               </Text>
             </Pressable>
+
             <Pressable
               onPress={() => setMethod("cash")}
               style={[

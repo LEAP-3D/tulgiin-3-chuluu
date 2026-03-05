@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Alert, Pressable, Text, TextInput, View } from "react-native";
 import { orderDetailStyles } from "../order.detail.styles";
-import { styles as orderStyles } from "../order.styles";
 
 type OrderReviewSectionProps = {
   isWorkerView: boolean;
@@ -37,7 +36,7 @@ export function OrderReviewSection({
   isSubmitting,
   onSubmit,
 }: OrderReviewSectionProps) {
-  const [selectedRating, setSelectedRating] = useState(5);
+  const [selectedRating, setSelectedRating] = useState(0);
   const [comment, setComment] = useState("");
 
   const hasReview =
@@ -52,11 +51,12 @@ export function OrderReviewSection({
 
   useEffect(() => {
     if (!canSubmit) return;
-    setSelectedRating(5);
+    setSelectedRating(0);
     setComment("");
   }, [canSubmit, reviewRating, reviewComment]);
 
-  const submitDisabled = isSubmitting || comment.trim().length === 0;
+  const submitDisabled =
+    isSubmitting || selectedRating < 1 || comment.trim().length === 0;
   const reviewedAtLabel = useMemo(() => formatReviewedAt(reviewedAt), [reviewedAt]);
 
   if (!isEligible) return null;
@@ -69,8 +69,13 @@ export function OrderReviewSection({
           {isWorkerView ? "Хэрэглэгчийн үнэлгээ" : "Таны үнэлгээ"}
         </Text>
         <Text style={orderDetailStyles.reviewRatingLabel}>
-          {"★".repeat(ratingValue)}
-          {"☆".repeat(5 - ratingValue)} {ratingValue.toFixed(1)}
+          <Text style={orderDetailStyles.reviewRatingStarsActive}>
+            {"★".repeat(ratingValue)}
+          </Text>
+          <Text style={orderDetailStyles.reviewRatingStarsInactive}>
+            {"☆".repeat(5 - ratingValue)}
+          </Text>{" "}
+          {ratingValue.toFixed(1)}
         </Text>
         <Text style={orderDetailStyles.reviewBody}>{reviewComment}</Text>
         {reviewedAtLabel ? (
@@ -107,9 +112,15 @@ export function OrderReviewSection({
   return (
     <View style={orderDetailStyles.profileCard}>
       <Text style={orderDetailStyles.sectionTitleSmall}>Үнэлгээ үлдээх</Text>
-      <Text style={orderDetailStyles.workerStatusText}>
+      <Text style={orderDetailStyles.reviewHelperText}>
         Төлбөр баталгаажсан тул 1-5 үнэлгээ болон сэтгэгдэл үлдээнэ үү.
       </Text>
+
+      <View style={orderDetailStyles.reviewStarsHeader}>
+        <Text style={orderDetailStyles.reviewLiveRating}>
+          {(selectedRating === 0 ? 0 : selectedRating).toFixed(1)} / 5.0
+        </Text>
+      </View>
 
       <View style={orderDetailStyles.reviewStarsRow}>
         {[1, 2, 3, 4, 5].map((value) => {
@@ -130,7 +141,7 @@ export function OrderReviewSection({
                   active && orderDetailStyles.reviewStarTextActive,
                 ]}
               >
-                {value}
+                {active ? "★" : "☆"}
               </Text>
             </Pressable>
           );
@@ -142,6 +153,7 @@ export function OrderReviewSection({
         value={comment}
         onChangeText={setComment}
         placeholder="Сэтгэгдлээ бичнэ үү..."
+        placeholderTextColor="#A0A0A0"
         multiline={true}
         textAlignVertical="top"
         maxLength={1000}
@@ -149,15 +161,19 @@ export function OrderReviewSection({
 
       <Pressable
         style={[
-          orderStyles.actionButton,
-          orderStyles.acceptButton,
-          submitDisabled && orderStyles.actionButtonDisabled,
+          orderDetailStyles.reviewSubmitButton,
+          submitDisabled && orderDetailStyles.reviewSubmitButtonDisabled,
         ]}
         onPress={handleSubmit}
         disabled={submitDisabled}
         accessibilityLabel="Үнэлгээ хадгалах"
       >
-        <Text style={orderStyles.actionText}>
+        <Text
+          style={[
+            orderDetailStyles.reviewSubmitButtonText,
+            submitDisabled && orderDetailStyles.reviewSubmitButtonTextDisabled,
+          ]}
+        >
           {isSubmitting ? "Хадгалж байна..." : "Үнэлгээ хадгалах"}
         </Text>
       </Pressable>
