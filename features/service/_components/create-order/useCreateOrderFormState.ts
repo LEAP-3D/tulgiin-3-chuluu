@@ -79,6 +79,7 @@ export function useCreateOrderFormState(
   const confirmDatePicker = () => {
     setDate(tempDate);
     setShowDatePicker(false);
+    setShowDistrictPicker(true);
     setErrors((prev) => ({ ...prev, date: undefined }));
   };
 
@@ -89,6 +90,7 @@ export function useCreateOrderFormState(
     if (Platform.OS !== "ios") {
       setDate(nextDate);
       setShowDatePicker(false);
+      setShowDistrictPicker(true);
       setErrors((prev) => ({ ...prev, date: undefined }));
     }
   };
@@ -97,6 +99,7 @@ export function useCreateOrderFormState(
     setDistrict(value);
     setKhoroo("");
     setShowDistrictPicker(false);
+    setShowKhorooPicker(true);
     setErrors((prev) => ({ ...prev, district: undefined, khoroo: undefined }));
   };
 

@@ -9,7 +9,11 @@ export default function HelpScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={["left", "right", "bottom"]}>
       <View style={styles.headerRow}>
-        <Pressable onPress={() => router.back()} hitSlop={10} style={styles.backButton}>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={10}
+          style={styles.backButton}
+        >
           <Ionicons name="arrow-back" size={20} color="#111" />
         </Pressable>
         <Text style={styles.headerTitle}>Тусламж</Text>
@@ -26,15 +30,14 @@ export default function HelpScreen() {
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Холбоо барих</Text>
-          <Text style={styles.cardText}>Утас: 7700-0000</Text>
+          <Text style={styles.cardText}>Утас: 9488-8834</Text>
           <Text style={styles.cardText}>Имэйл: support@ubzyro.mn</Text>
         </View>
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Чат дэмжлэг</Text>
           <Text style={styles.cardText}>
-            09:00 - 18:00 (Даваа - Баасан) цагийн хооронд чат дэмжлэг
-            ажиллана.
+            09:00 - 18:00 (Даваа - Баасан) цагийн хооронд чат дэмжлэг ажиллана.
           </Text>
         </View>
       </ScrollView>

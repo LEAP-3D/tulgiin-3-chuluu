@@ -26,7 +26,7 @@ export default function ComplaintScreen() {
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Холбоо барих</Text>
-          <Text style={styles.cardText}>Утас: 7700-0000</Text>
+          <Text style={styles.cardText}>Утас: 9488-8834</Text>
           <Text style={styles.cardText}>Имэйл: complaint@ubzyro.mn</Text>
         </View>
 
